@@ -1,0 +1,183 @@
+<!-- src/app/features/builder/toolbar/toolbar.component.html -->
+
+<div class="toolbar-container">
+  <!-- Main Toolbar -->
+  <div class="toolbar-main">
+    <!-- Left Section -->
+    <div class="toolbar-left">
+      <!-- Back Button -->
+      <button class="btn-icon" (click)="back.emit()" title="Back to Dashboard">
+        <span class="material-icons">arrow_back</span>
+      </button>
+
+      <!-- App Name -->
+      <div class="app-info">
+        <span class="app-label">Flutter Builder</span>
+        <span class="separator">-</span>
+        <span class="app-name">{{ application?.name || 'Untitled' }}</span>
+      </div>
+    </div>
+
+    <!-- Center Section -->
+    <div class="toolbar-center">
+      <!-- Undo/Redo -->
+      <div class="toolbar-group">
+        <button
+          class="btn-icon"
+          (click)="undo.emit()"
+          [disabled]="!canUndo"
+          title="Undo (Ctrl+Z)">
+          <span class="material-icons">undo</span>
+        </button>
+        <button
+          class="btn-icon"
+          (click)="redo.emit()"
+          [disabled]="!canRedo"
+          title="Redo (Ctrl+Y)">
+          <span class="material-icons">redo</span>
+        </button>
+      </div>
+
+      <!-- Save Status -->
+      <div class="save-status">
+        <button
+          class="btn-save"
+          (click)="onSave()"
+          [class.saving]="isSaving">
+          <span class="material-icons" *ngIf="!isSaving">
+            {{ lastSaved ? 'check_circle' : 'save' }}
+          </span>
+          <span class="spinner-small" *ngIf="isSaving"></span>
+          <span>{{ getSaveButtonText() }}</span>
+        </button>
+        <span class="save-time" *ngIf="lastSaved && !isSaving">
+          {{ getLastSavedText() }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Right Section -->
+    <div class="toolbar-right">
+      <!-- Menu Button -->
+      <button class="btn-icon" (click)="toggleSettingsMenu()">
+        <span class="material-icons">more_vert</span>
+      </button>
+
+      <!-- Preview Button -->
+      <button class="btn-primary" (click)="preview.emit()">
+        <span class="material-icons">visibility</span>
+        <span>Preview</span>
+      </button>
+
+      <!-- Build Button -->
+      <button class="btn-success" (click)="build.emit()">
+        <span class="material-icons">build_circle</span>
+        <span>Build</span>
+      </button>
+
+      <!-- Settings Menu Dropdown -->
+      <div class="settings-menu" *ngIf="showSettingsMenu">
+        <div class="menu-item" (click)="exportProject()">
+          <span class="material-icons">download</span>
+          <span>Export Project</span>
+        </div>
+        <div class="menu-item" (click)="projectSettings()">
+          <span class="material-icons">settings</span>
+          <span>Project Settings</span>
+        </div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" (click)="showKeyboardShortcuts()">
+          <span class="material-icons">keyboard</span>
+          <span>Keyboard Shortcuts</span>
+        </div>
+        <div class="menu-item" (click)="toggleAutoSave()">
+          <span class="material-icons">{{ autoSaveEnabled ? 'check_box' : 'check_box_outline_blank' }}</span>
+          <span>Auto-save</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secondary Toolbar -->
+  <div class="toolbar-secondary">
+    <!-- Device Selector -->
+    <div class="toolbar-group">
+      <label class="toolbar-label">Device:</label>
+      <select
+        class="device-selector"
+        [(ngModel)]="currentDevice"
+        (ngModelChange)="onDeviceSelect($event)">
+        <option *ngFor="let device of devices" [value]="device.id">
+          {{ device.name }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Zoom Controls -->
+    <div class="toolbar-group zoom-controls">
+      <button
+        class="btn-icon-small"
+        (click)="onZoomOut()"
+        [disabled]="currentZoom <= 25">
+        <span class="material-icons">remove</span>
+      </button>
+
+      <div class="zoom-slider">
+        <input
+          type="range"
+          min="25"
+          max="200"
+          step="5"
+          [(ngModel)]="currentZoom"
+          (ngModelChange)="zoomChange.emit($event)">
+      </div>
+
+      <span class="zoom-value">{{ currentZoom }}%</span>
+
+      <button
+        class="btn-icon-small"
+        (click)="onZoomIn()"
+        [disabled]="currentZoom >= 200">
+        <span class="material-icons">add</span>
+      </button>
+
+      <button
+        class="btn-icon-small"
+        (click)="onZoomReset()"
+        title="Reset Zoom (Ctrl+0)">
+        <span class="material-icons">crop_free</span>
+      </button>
+    </div>
+
+    <!-- Grid Toggle -->
+    <div class="toolbar-group">
+      <button
+        class="btn-toggle"
+        [class.active]="showGridLines"
+        (click)="toggleGrid()"
+        title="Toggle Grid">
+        <span class="material-icons">grid_on</span>
+        <span>Grid</span>
+      </button>
+    </div>
+
+    <!-- Quick Presets -->
+    <div class="toolbar-group">
+      <div class="zoom-presets">
+        <button
+          *ngFor="let preset of zoomPresets"
+          class="preset-btn"
+          [class.active]="currentZoom === preset"
+          (click)="currentZoom = preset; zoomChange.emit(preset)">
+          {{ preset }}%
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Auto-save indicator -->
+<div class="autosave-indicator" *ngIf="showSaveIndicator" [@saveAnimation]>
+  <span class="material-icons">check_circle</span>
+  <span>Saved</span>
+</div>

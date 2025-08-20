@@ -1,0 +1,155 @@
+<!-- src/app/features/builder/widget-tree/widget-tree.component.html -->
+
+<div class="widget-tree">
+  <!-- Search/Filter Box -->
+  <div class="tree-search">
+    <span class="material-icons">search</span>
+    <input
+      type="text"
+      placeholder="Search widgets..."
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="filterTree()">
+    <button
+      class="clear-btn"
+      *ngIf="searchQuery"
+      (click)="clearSearch()">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+
+  <!-- Tree View -->
+  <div class="tree-container" (contextmenu)="onTreeContextMenu($event)">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="visibleNodes.length === 0 && !searchQuery">
+      <span class="material-icons">account_tree</span>
+      <p>No widgets yet</p>
+      <small>Drag widgets from the panel to start building</small>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" *ngIf="visibleNodes.length === 0 && searchQuery">
+      <span class="material-icons">search_off</span>
+      <p>No widgets found</p>
+      <small>Try a different search term</small>
+    </div>
+
+    <!-- Tree Nodes -->
+    <div
+      class="tree-node"
+      *ngFor="let node of visibleNodes; trackBy: trackByNodeId"
+      [class.selected]="isSelected(node)"
+      [class.expanded]="isExpanded(node)"
+      [class.has-children]="node.children.length > 0"
+      [style.padding-left.px]="node.level * 20 + 8"
+      (click)="onNodeClick(node)"
+      (contextmenu)="showContextMenu($event, node)"
+      appDraggable
+      [dragType]="'existing-widget'"
+      [widget]="node.widget"
+      [dragEnabled]="true"
+      (dragStarted)="onNodeDragStart($event, node)"
+      appDroppable
+      [parentWidgetId]="node.widget.id"
+      [dropEnabled]="canAcceptChildren(node.widget.widget_type)"
+      (dropped)="onNodeDrop($event, node)">
+
+      <!-- Expand/Collapse Icon -->
+      <span
+        class="tree-toggle"
+        *ngIf="node.children.length > 0"
+        (click)="toggleNode(node.widget.id, $event)">
+        <span class="material-icons">
+          {{ isExpanded(node) ? 'expand_more' : 'chevron_right' }}
+        </span>
+      </span>
+
+      <!-- Empty Space for Leaf Nodes -->
+      <span class="tree-toggle-spacer" *ngIf="node.children.length === 0"></span>
+
+      <!-- Widget Icon -->
+      <span class="tree-icon">
+        <span class="material-icons">{{ getNodeIcon(node.widget.widget_type) }}</span>
+      </span>
+
+      <!-- Widget Name -->
+      <span class="tree-label">
+        <span class="widget-type">{{ node.widget.widget_type }}</span>
+        <span class="widget-id" *ngIf="node.widget.widget_id">
+          #{{ node.widget.widget_id }}
+        </span>
+      </span>
+
+      <!-- Actions -->
+      <div class="tree-actions">
+        <button
+          class="action-btn"
+          (click)="duplicateWidget(node.widget, $event)"
+          title="Duplicate">
+          <span class="material-icons">content_copy</span>
+        </button>
+        <button
+          class="action-btn delete"
+          (click)="deleteWidget(node.widget, $event)"
+          title="Delete">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+
+      <!-- Drag Handle -->
+      <div class="drag-handle">
+        <span class="material-icons">drag_indicator</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context Menu -->
+  <div
+    class="context-menu"
+    *ngIf="contextMenuVisible"
+    [style.left.px]="contextMenuPosition.x"
+    [style.top.px]="contextMenuPosition.y">
+
+    <button class="menu-item" (click)="onContextMenuAction('duplicate')">
+      <span class="material-icons">content_copy</span>
+      <span>Duplicate</span>
+      <span class="shortcut">Ctrl+D</span>
+    </button>
+
+    <button class="menu-item" (click)="onContextMenuAction('copy')">
+      <span class="material-icons">content_copy</span>
+      <span>Copy</span>
+      <span class="shortcut">Ctrl+C</span>
+    </button>
+
+    <button class="menu-item" (click)="onContextMenuAction('paste')" [disabled]="!hasClipboard">
+      <span class="material-icons">content_paste</span>
+      <span>Paste</span>
+      <span class="shortcut">Ctrl+V</span>
+    </button>
+
+    <div class="menu-divider"></div>
+
+    <button class="menu-item" (click)="onContextMenuAction('rename')">
+      <span class="material-icons">edit</span>
+      <span>Rename</span>
+    </button>
+
+    <button class="menu-item" (click)="onContextMenuAction('moveUp')" [disabled]="!canMoveUp">
+      <span class="material-icons">arrow_upward</span>
+      <span>Move Up</span>
+    </button>
+
+    <button class="menu-item" (click)="onContextMenuAction('moveDown')" [disabled]="!canMoveDown">
+      <span class="material-icons">arrow_downward</span>
+      <span>Move Down</span>
+    </button>
+
+    <div class="menu-divider"></div>
+
+    <button class="menu-item danger" (click)="onContextMenuAction('delete')">
+      <span class="material-icons">delete</span>
+      <span>Delete</span>
+      <span class="shortcut">Delete</span>
+    </button>
+  </div>
+</div>

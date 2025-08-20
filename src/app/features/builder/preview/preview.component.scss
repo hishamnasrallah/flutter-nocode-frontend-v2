@@ -1,0 +1,443 @@
+// src/app/features/builder/preview/preview.component.scss
+
+.preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+}
+
+.preview-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+}
+
+// Toolbar
+.preview-toolbar {
+  height: 60px;
+  background: #2a2a2a;
+  border-bottom: 1px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: relative;
+  z-index: 10;
+
+  .toolbar-left,
+  .toolbar-center,
+  .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .preview-title {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .hot-reload-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: #999;
+    font-size: 13px;
+    transition: all 0.3s;
+
+    &.active {
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+
+      .material-icons {
+        animation: rotate 2s linear infinite;
+      }
+    }
+
+    .material-icons {
+      font-size: 16px;
+    }
+  }
+}
+
+// Device Selector
+.device-selector {
+  display: flex;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+
+  .device-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    position: relative;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    &.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .material-icons {
+      font-size: 18px;
+    }
+
+    .device-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .device-label {
+        display: none;
+      }
+    }
+  }
+}
+
+// Orientation Button
+.orientation-btn {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+  }
+
+  .material-icons {
+    font-size: 20px;
+  }
+}
+
+// Zoom Controls
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px;
+
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .material-icons {
+      font-size: 18px;
+    }
+  }
+
+  .zoom-selector {
+    select {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 4px 8px;
+
+      &:focus {
+        outline: none;
+      }
+
+      option {
+        background: #2a2a2a;
+      }
+    }
+  }
+}
+
+// Close Button
+.close-btn {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #999;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f44336;
+    color: white;
+  }
+
+  .material-icons {
+    font-size: 20px;
+  }
+}
+
+// Preview Content
+.preview-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow: auto;
+  position: relative;
+
+  &.landscape {
+    app-device-frame {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+// App Preview Content
+.app-preview-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .app-bar {
+    height: 56px;
+    background: #667eea;
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    .back-button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 8px;
+      margin-right: 8px;
+      margin-left: -8px;
+      cursor: pointer;
+      border-radius: 50%;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .material-icons {
+        font-size: 24px;
+      }
+    }
+
+    .app-bar-title {
+      flex: 1;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+    }
+  }
+
+  .screen-content {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+
+    .widgets-container {
+      min-height: 100%;
+    }
+
+    .preview-widget {
+      padding: 8px;
+      margin-bottom: 8px;
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+      font-size: 14px;
+      color: #666;
+    }
+  }
+}
+
+// Empty State
+.empty-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #999;
+
+  .material-icons {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+  }
+
+  p {
+    font-size: 18px;
+    margin: 0 0 8px;
+  }
+
+  small {
+    font-size: 14px;
+    opacity: 0.7;
+  }
+}
+
+// Preview Actions
+.preview-actions {
+  height: 60px;
+  background: #2a2a2a;
+  border-top: 1px solid #3a3a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 20px;
+
+  .action-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    &.primary {
+      background: #667eea;
+
+      &:hover {
+        background: #5a67d8;
+      }
+    }
+
+    .material-icons {
+      font-size: 18px;
+    }
+  }
+}
+
+// Animation
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .preview-content {
+    padding: 20px;
+  }
+
+  .preview-toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px;
+
+    .toolbar-left,
+    .toolbar-center,
+    .toolbar-right {
+      width: 100%;
+      justify-content: center;
+      margin: 4px 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .preview-content {
+    padding: 10px;
+  }
+
+  .preview-actions {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px;
+
+    .action-btn {
+      flex: 1;
+      min-width: 100px;
+    }
+  }
+
+  // Prevent body scroll when preview is open
+  body:has(.preview-overlay) {
+    overflow: hidden;
+  }
+}

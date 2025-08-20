@@ -1,0 +1,508 @@
+<!-- src/app/features/builder/widget-renderer/widget-renderer.component.html -->
+
+<div
+  class="widget-container"
+  [class.selected]="isSelected"
+  [class.hovered]="isHovered"
+  [ngClass]="'widget-' + widget.widget_type.toLowerCase()"
+  [ngStyle]="getWidgetStyles()"
+  (contextmenu)="onContextMenu($event)">
+
+  <!-- Resize Handles (shown when selected) -->
+  <div class="resize-handles" *ngIf="isSelected && canResize()">
+    <div class="resize-handle top-left" (mousedown)="startResize($event, 'top-left')"></div>
+    <div class="resize-handle top" (mousedown)="startResize($event, 'top')"></div>
+    <div class="resize-handle top-right" (mousedown)="startResize($event, 'top-right')"></div>
+    <div class="resize-handle right" (mousedown)="startResize($event, 'right')"></div>
+    <div class="resize-handle bottom-right" (mousedown)="startResize($event, 'bottom-right')"></div>
+    <div class="resize-handle bottom" (mousedown)="startResize($event, 'bottom')"></div>
+    <div class="resize-handle bottom-left" (mousedown)="startResize($event, 'bottom-left')"></div>
+    <div class="resize-handle left" (mousedown)="startResize($event, 'left')"></div>
+  </div>
+
+  <!-- Widget Selection Overlay -->
+  <div class="widget-overlay" *ngIf="isSelected || isHovered"></div>
+
+  <!-- Dynamic Widget Content Based on Type -->
+  <ng-container [ngSwitch]="widget.widget_type">
+
+    <!-- Layout Widgets -->
+    <div *ngSwitchCase="'Column'" class="layout-column" [ngStyle]="getFlexStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">view_column</span>
+        <span>Column</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Row'" class="layout-row" [ngStyle]="getFlexStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">view_stream</span>
+        <span>Row</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Container'" class="layout-container" [ngStyle]="getContainerStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">crop_square</span>
+        <span>Container</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Stack'" class="layout-stack">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">layers</span>
+        <span>Stack</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Padding'" class="layout-padding" [ngStyle]="getPaddingStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">format_indent_increase</span>
+        <span>Padding</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Center'" class="layout-center">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">format_align_center</span>
+        <span>Center</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Expanded'" class="layout-expanded">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">unfold_more</span>
+        <span>Expanded</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Wrap'" class="layout-wrap">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">wrap_text</span>
+        <span>Wrap</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'SizedBox'" class="layout-sizedbox" [ngStyle]="getSizedBoxStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">crop_free</span>
+        <span>SizedBox</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'AspectRatio'" class="layout-aspectratio" [ngStyle]="getAspectRatioStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">aspect_ratio</span>
+        <span>AspectRatio</span>
+      </div>
+    </div>
+
+    <!-- Display Widgets -->
+    <div *ngSwitchCase="'Text'" class="display-text" [ngStyle]="getTextStyles()">
+      {{ getPropertyValue('text') || 'Sample Text' }}
+    </div>
+
+    <div *ngSwitchCase="'Image'" class="display-image">
+      <img
+        [src]="getPropertyValue('imageUrl') || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2VlZSIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjEwMCIgeT0iMTAwIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjE5cHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+SW1hZ2U8L3RleHQ+PC9zdmc+'"
+        [alt]="getPropertyValue('altText') || 'Image'"
+        [ngStyle]="getImageStyles()">
+    </div>
+
+    <div *ngSwitchCase="'Icon'" class="display-icon" [ngStyle]="getIconStyles()">
+      <span class="material-icons">{{ getPropertyValue('icon') || 'star' }}</span>
+    </div>
+
+    <div *ngSwitchCase="'Card'" class="display-card" [ngStyle]="getCardStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">credit_card</span>
+        <span>Card Content</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Divider'" class="display-divider" [ngStyle]="getDividerStyles()"></div>
+
+    <div *ngSwitchCase="'ListTile'" class="display-listtile" [ngStyle]="getListTileStyles()">
+      <div class="listtile-leading" *ngIf="getPropertyValue('leading')">
+        <span class="material-icons">{{ getPropertyValue('leading') }}</span>
+      </div>
+      <div class="listtile-content">
+        <div class="listtile-title">{{ getPropertyValue('title') || 'List Item' }}</div>
+        <div class="listtile-subtitle" *ngIf="getPropertyValue('subtitle')">
+          {{ getPropertyValue('subtitle') }}
+        </div>
+      </div>
+      <div class="listtile-trailing" *ngIf="getPropertyValue('trailing')">
+        <span class="material-icons">{{ getPropertyValue('trailing') }}</span>
+      </div>
+    </div>
+
+    <!-- Input Widgets -->
+    <div *ngSwitchCase="'TextField'" class="input-textfield">
+      <input
+        type="text"
+        [placeholder]="getPropertyValue('hintText') || 'Enter text'"
+        [ngStyle]="getTextFieldStyles()"
+        [disabled]="true">
+    </div>
+
+    <button *ngSwitchCase="'ElevatedButton'" class="input-elevatedbutton" [ngStyle]="getButtonStyles()">
+      <span class="material-icons" *ngIf="getPropertyValue('icon')">{{ getPropertyValue('icon') }}</span>
+      {{ getPropertyValue('text') || 'Button' }}
+    </button>
+
+    <button *ngSwitchCase="'TextButton'" class="input-textbutton" [ngStyle]="getTextButtonStyles()">
+      {{ getPropertyValue('text') || 'Text Button' }}
+    </button>
+
+    <button *ngSwitchCase="'IconButton'" class="input-iconbutton" [ngStyle]="getIconButtonStyles()">
+      <span class="material-icons">{{ getPropertyValue('icon') || 'touch_app' }}</span>
+    </button>
+
+    <div *ngSwitchCase="'Switch'" class="input-switch">
+      <label class="switch">
+        <input type="checkbox" [checked]="getPropertyValue('value')" disabled>
+        <span class="slider round"></span>
+      </label>
+    </div>
+
+    <div *ngSwitchCase="'Checkbox'" class="input-checkbox">
+      <input type="checkbox" [checked]="getPropertyValue('value')" disabled>
+      <label>{{ getPropertyValue('label') || 'Checkbox' }}</label>
+    </div>
+
+    <div *ngSwitchCase="'Radio'" class="input-radio">
+      <input type="radio" [checked]="getPropertyValue('value')" disabled>
+      <label>{{ getPropertyValue('label') || 'Radio' }}</label>
+    </div>
+
+    <div *ngSwitchCase="'Slider'" class="input-slider">
+      <input
+        type="range"
+        [min]="getPropertyValue('min') || 0"
+        [max]="getPropertyValue('max') || 100"
+        [value]="getPropertyValue('value') || 50"
+        disabled>
+    </div>
+
+    <div *ngSwitchCase="'DropdownButton'" class="input-dropdown">
+      <select disabled>
+        <option>{{ getPropertyValue('value') || 'Select Option' }}</option>
+      </select>
+    </div>
+
+    <!-- Scrollable Widgets -->
+    <div *ngSwitchCase="'ListView'" class="scrollable-listview">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">list</span>
+        <span>ListView</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'GridView'" class="scrollable-gridview" [ngStyle]="getGridViewStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">grid_on</span>
+        <span>GridView</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'SingleChildScrollView'" class="scrollable-singlechildscrollview">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">swap_vert</span>
+        <span>ScrollView</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'PageView'" class="scrollable-pageview">
+      <ng-container *ngFor="let child of widget.child_widgets; let i = index">
+        <div class="page" [class.active]="i === 0">
+          <app-widget-renderer
+            [widget]="child"
+            [isSelected]="false"
+            [isHovered]="false"
+            [zoom]="zoom"
+            (widgetDeleted)="onChildDeleted($event)">
+          </app-widget-renderer>
+        </div>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">view_carousel</span>
+        <span>PageView</span>
+      </div>
+    </div>
+
+    <!-- Navigation Widgets -->
+    <div *ngSwitchCase="'AppBar'" class="navigation-appbar" [ngStyle]="getAppBarStyles()">
+      <button class="appbar-leading">
+        <span class="material-icons">menu</span>
+      </button>
+      <div class="appbar-title">{{ getPropertyValue('title') || 'App Bar' }}</div>
+      <div class="appbar-actions">
+        <button><span class="material-icons">search</span></button>
+        <button><span class="material-icons">more_vert</span></button>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'BottomNavigationBar'" class="navigation-bottomnavbar" [ngStyle]="getBottomNavStyles()">
+      <div class="nav-item active">
+        <span class="material-icons">home</span>
+        <span>Home</span>
+      </div>
+      <div class="nav-item">
+        <span class="material-icons">search</span>
+        <span>Search</span>
+      </div>
+      <div class="nav-item">
+        <span class="material-icons">favorite</span>
+        <span>Favorites</span>
+      </div>
+      <div class="nav-item">
+        <span class="material-icons">person</span>
+        <span>Profile</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'TabBar'" class="navigation-tabbar" [ngStyle]="getTabBarStyles()">
+      <div class="tab active">Tab 1</div>
+      <div class="tab">Tab 2</div>
+      <div class="tab">Tab 3</div>
+    </div>
+
+    <div *ngSwitchCase="'Drawer'" class="navigation-drawer">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">menu</span>
+        <span>Drawer</span>
+      </div>
+    </div>
+
+    <!-- Advanced Widgets -->
+    <div *ngSwitchCase="'GestureDetector'" class="advanced-gesturedetector">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">touch_app</span>
+        <span>GestureDetector</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'InkWell'" class="advanced-inkwell">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">touch_app</span>
+        <span>InkWell</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'Hero'" class="advanced-hero">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">animation</span>
+        <span>Hero</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'AnimatedContainer'" class="advanced-animatedcontainer" [ngStyle]="getContainerStyles()">
+      <ng-container *ngFor="let child of widget.child_widgets">
+        <app-widget-renderer
+          [widget]="child"
+          [isSelected]="false"
+          [isHovered]="false"
+          [zoom]="zoom"
+          (widgetDeleted)="onChildDeleted($event)">
+        </app-widget-renderer>
+      </ng-container>
+      <div class="empty-container" *ngIf="!widget.child_widgets?.length">
+        <span class="material-icons">animation</span>
+        <span>AnimatedContainer</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'FutureBuilder'" class="advanced-futurebuilder">
+      <div class="placeholder">
+        <span class="material-icons">hourglass_empty</span>
+        <span>FutureBuilder</span>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="'StreamBuilder'" class="advanced-streambuilder">
+      <div class="placeholder">
+        <span class="material-icons">stream</span>
+        <span>StreamBuilder</span>
+      </div>
+    </div>
+
+    <!-- Default case for unknown widgets -->
+    <div *ngSwitchDefault class="widget-unknown">
+      <span class="material-icons">widgets</span>
+      <span>{{ widget.widget_type }}</span>
+    </div>
+  </ng-container>
+
+  <!-- Widget Actions (shown when selected) -->
+  <div class="widget-actions" *ngIf="isSelected">
+    <button class="action-btn delete" (click)="onDelete()" title="Delete Widget">
+      <span class="material-icons">delete</span>
+    </button>
+    <button class="action-btn duplicate" (click)="onDuplicate()" title="Duplicate Widget">
+      <span class="material-icons">content_copy</span>
+    </button>
+  </div>
+</div>

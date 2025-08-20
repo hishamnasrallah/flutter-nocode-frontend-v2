@@ -1,0 +1,89 @@
+<!-- src/app/features/builder/device-frame/device-frame.component.html -->
+
+<div
+  class="device-frame-container"
+  [attr.data-device]="deviceType"
+  [style.transform]="'scale(' + (zoom / 100) + ')'"
+  [style.transformOrigin]="'center center'">
+
+  <!-- Device Bezel -->
+  <div
+    class="device-bezel"
+    [ngClass]="'device-' + deviceType"
+    [style.width.px]="currentDevice.width"
+    [style.height.px]="currentDevice.height"
+    [style.borderRadius.px]="currentDevice.borderRadius"
+    [style.backgroundColor]="currentDevice.bezelColor">
+
+    <!-- Power Button -->
+    <div class="power-button" *ngIf="deviceType !== 'ipad'"></div>
+
+    <!-- Volume Buttons -->
+    <div class="volume-buttons" *ngIf="deviceType !== 'ipad'">
+      <div class="volume-up"></div>
+      <div class="volume-down"></div>
+    </div>
+
+    <!-- Silent Switch (iPhone only) -->
+    <div class="silent-switch" *ngIf="deviceType.includes('iphone')"></div>
+
+    <!-- Camera Notch (Modern iPhones) -->
+    <div class="camera-notch" *ngIf="hasNotch()">
+      <div class="notch-speaker"></div>
+      <div class="notch-camera"></div>
+    </div>
+
+    <!-- Device Screen -->
+    <div
+      class="device-screen"
+      [style.backgroundColor]="currentDevice.screenColor || '#FFFFFF'"
+      [style.borderRadius.px]="getScreenBorderRadius()">
+
+      <!-- Status Bar -->
+      <div
+        class="status-bar"
+        [style.height.px]="currentDevice.statusBarHeight"
+        [style.paddingTop.px]="getStatusBarPadding()">
+
+        <div class="status-bar-left">
+          <span class="time">{{ getCurrentTime() }}</span>
+        </div>
+
+        <div class="status-bar-center" *ngIf="hasNotch()">
+          <!-- Dynamic Island or Notch Area -->
+        </div>
+
+        <div class="status-bar-right">
+          <span class="material-icons signal-icon">signal_cellular_4_bar</span>
+          <span class="material-icons wifi-icon">wifi</span>
+          <span class="material-icons battery-icon">battery_full</span>
+        </div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="device-content">
+        <ng-content></ng-content>
+      </div>
+
+      <!-- Home Indicator (Modern iPhones) -->
+      <div
+        class="home-indicator"
+        *ngIf="currentDevice.homeIndicatorHeight > 0"
+        [style.height.px]="currentDevice.homeIndicatorHeight">
+        <div class="home-indicator-bar"></div>
+      </div>
+
+      <!-- Home Button (Classic iPhones) -->
+      <div
+        class="home-button"
+        *ngIf="currentDevice.hasHomeButton">
+        <div class="home-button-ring"></div>
+      </div>
+    </div>
+
+    <!-- Speaker Grill -->
+    <div class="speaker-grill" *ngIf="deviceType !== 'ipad'">
+      <div class="speaker-hole" *ngFor="let hole of [1,2,3,4,5,6]"></div>
+    </div>
+  </div>
+</div>

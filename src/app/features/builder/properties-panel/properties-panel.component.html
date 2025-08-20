@@ -1,0 +1,355 @@
+<!-- src/app/features/builder/properties-panel/properties-panel.component.html -->
+
+<div class="properties-panel" *ngIf="widget">
+  <!-- Panel Header -->
+  <div class="panel-header">
+    <div class="widget-info">
+      <span class="widget-icon material-icons">{{ getWidgetIcon() }}</span>
+      <div class="widget-details">
+        <h3 class="widget-type">{{ widget.widget_type }}</h3>
+        <span class="widget-id">ID: {{ widget.widget_id || '#' + widget.id }}</span>
+      </div>
+    </div>
+
+    <button class="delete-btn" (click)="deleteWidget()" title="Delete Widget">
+      <span class="material-icons">delete</span>
+    </button>
+  </div>
+
+  <!-- Property Groups -->
+  <div class="property-groups">
+    <div class="property-group" *ngFor="let group of propertyGroups">
+      <!-- Group Header -->
+      <div class="group-header" (click)="toggleGroup(group.name)">
+        <span class="group-icon material-icons">
+          {{ expandedGroups.has(group.name) ? 'expand_less' : 'expand_more' }}
+        </span>
+        <span class="group-name">{{ group.name }}</span>
+        <span class="group-count">{{ group.properties.length }}</span>
+      </div>
+
+      <!-- Group Content -->
+      <div class="group-content" *ngIf="expandedGroups.has(group.name)">
+        <div class="property-item" *ngFor="let property of group.properties">
+          <div class="property-header">
+            <label class="property-label">{{ property.display_name || property.property_name }}</label>
+            <button
+              class="reset-btn"
+              (click)="resetProperty(property)"
+              *ngIf="hasDefaultValue(property)"
+              title="Reset to default">
+              <span class="material-icons">refresh</span>
+            </button>
+          </div>
+
+          <!-- String Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'string'">
+            <input
+              type="text"
+              class="text-input"
+              [value]="getPropertyValue(property)"
+              (input)="onPropertyChange(property, $event)"
+              placeholder="Enter text">
+          </div>
+
+          <!-- Integer Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'integer'">
+            <div class="number-input-wrapper">
+              <input
+                type="number"
+                class="number-input"
+                [value]="getPropertyValue(property)"
+                (input)="onPropertyChange(property, $event)"
+                step="1">
+              <div class="number-stepper">
+                <button (click)="incrementValue(property, 1)">
+                  <span class="material-icons">add</span>
+                </button>
+                <button (click)="incrementValue(property, -1)">
+                  <span class="material-icons">remove</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decimal Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'decimal'">
+            <div class="number-input-wrapper">
+              <input
+                type="number"
+                class="number-input"
+                [value]="getPropertyValue(property)"
+                (input)="onPropertyChange(property, $event)"
+                step="0.1">
+              <span class="input-suffix" *ngIf="getPropertySuffix(property)">
+                {{ getPropertySuffix(property) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Boolean Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'boolean'">
+            <label class="toggle-switch">
+              <input
+                type="checkbox"
+                [checked]="getPropertyValue(property)"
+                (change)="onPropertyChange(property, $event)">
+              <span class="toggle-slider"></span>
+              <span class="toggle-label">{{ getPropertyValue(property) ? 'On' : 'Off' }}</span>
+            </label>
+          </div>
+
+          <!-- Color Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'color'">
+            <div class="color-picker-wrapper">
+              <div class="color-preview"
+                   [style.background-color]="getPropertyValue(property) || '#000000'"
+                   (click)="toggleColorPicker(property)">
+                <span class="color-value">{{ getPropertyValue(property) || '#000000' }}</span>
+              </div>
+
+              <div class="color-picker-dropdown" *ngIf="activeColorPicker === property.id">
+                <div class="color-input-row">
+                  <input
+                    type="text"
+                    class="hex-input"
+                    [value]="getPropertyValue(property) || '#000000'"
+                    (input)="onColorInputChange(property, $event)"
+                    placeholder="#000000"
+                    maxlength="7">
+                  <input
+                    type="color"
+                    class="native-color-input"
+                    [value]="getPropertyValue(property) || '#000000'"
+                    (change)="onPropertyChange(property, $event)">
+                </div>
+
+                <div class="color-swatches">
+                  <div
+                    class="color-swatch"
+                    *ngFor="let color of materialColors"
+                    [style.background-color]="color"
+                    [class.selected]="getPropertyValue(property) === color"
+                    (click)="selectColor(property, color)"
+                    [title]="color">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Icon Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'icon'">
+            <div class="icon-picker-wrapper">
+              <div class="icon-preview" (click)="toggleIconPicker(property)">
+                <span class="material-icons">{{ getPropertyValue(property) || 'add' }}</span>
+                <span class="icon-name">{{ getPropertyValue(property) || 'Select icon' }}</span>
+                <span class="material-icons dropdown-arrow">arrow_drop_down</span>
+              </div>
+
+              <div class="icon-picker-dropdown" *ngIf="activeIconPicker === property.id">
+                <input
+                  type="text"
+                  class="icon-search"
+                  [(ngModel)]="iconSearchQuery"
+                  (ngModelChange)="filterIcons()"
+                  placeholder="Search icons...">
+
+                <div class="icon-grid">
+                  <div
+                    class="icon-option"
+                    *ngFor="let icon of filteredIcons"
+                    [class.selected]="getPropertyValue(property) === icon"
+                    (click)="selectIcon(property, icon)"
+                    [title]="icon">
+                    <span class="material-icons">{{ icon }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alignment Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'alignment'">
+            <div class="alignment-grid">
+              <button
+                *ngFor="let align of alignmentOptions"
+                class="alignment-btn"
+                [class.selected]="getPropertyValue(property) === align.value"
+                (click)="selectAlignment(property, align.value)"
+                [title]="align.label">
+                <span class="alignment-dot" [class]="'align-' + align.value"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- URL Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'url'">
+            <div class="url-input-wrapper">
+              <span class="material-icons url-icon">link</span>
+              <input
+                type="url"
+                class="url-input"
+                [value]="getPropertyValue(property)"
+                (input)="onPropertyChange(property, $event)"
+                placeholder="https://example.com">
+              <button
+                class="url-validate-btn"
+                (click)="validateUrl(property)"
+                [class.valid]="isUrlValid(getPropertyValue(property))">
+                <span class="material-icons">{{ isUrlValid(getPropertyValue(property)) ? 'check' : 'error' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- JSON Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'json'">
+            <div class="json-editor-wrapper">
+              <textarea
+                class="json-input"
+                [value]="formatJson(getPropertyValue(property))"
+                (input)="onJsonChange(property, $event)"
+                rows="4"
+                placeholder="{ }">
+              </textarea>
+              <div class="json-status" [class.valid]="isJsonValid(getPropertyValue(property))">
+                <span class="material-icons">{{ isJsonValid(getPropertyValue(property)) ? 'check_circle' : 'error' }}</span>
+                <span>{{ isJsonValid(getPropertyValue(property)) ? 'Valid JSON' : 'Invalid JSON' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Reference Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'action_reference'">
+            <select
+              class="select-input"
+              [value]="getPropertyValue(property)"
+              (change)="onPropertyChange(property, $event)">
+              <option value="">None</option>
+              <option *ngFor="let action of availableActions" [value]="action.id">
+                {{ action.name }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Screen Reference Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'screen_reference'">
+            <select
+              class="select-input"
+              [value]="getPropertyValue(property)"
+              (change)="onPropertyChange(property, $event)">
+              <option value="">None</option>
+              <option *ngFor="let screen of availableScreens" [value]="screen.id">
+                {{ screen.name }} ({{ screen.route_name }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Data Source Field Reference Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'data_source_field_reference'">
+            <select
+              class="select-input"
+              [value]="getPropertyValue(property)"
+              (change)="onPropertyChange(property, $event)">
+              <option value="">None</option>
+              <optgroup *ngFor="let ds of availableDataSources" [label]="ds.name">
+                <option *ngFor="let field of ds.fields" [value]="field.id">
+                  {{ field.display_name }}
+                </option>
+              </optgroup>
+            </select>
+          </div>
+
+          <!-- File Upload Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'file_upload'">
+            <div class="file-upload-wrapper">
+              <button class="file-upload-btn" (click)="openFileUpload(property)">
+                <span class="material-icons">cloud_upload</span>
+                <span>{{ getPropertyValue(property) ? 'Change File' : 'Upload File' }}</span>
+              </button>
+              <span class="file-name" *ngIf="getPropertyValue(property)">
+                {{ getFileName(getPropertyValue(property)) }}
+              </span>
+              <input
+                type="file"
+                #fileInput
+                class="hidden-file-input"
+                (change)="onFileSelected(property, $event)">
+            </div>
+          </div>
+
+          <!-- Date Picker Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'date_picker'">
+            <input
+              type="date"
+              class="date-input"
+              [value]="getPropertyValue(property)"
+              (change)="onPropertyChange(property, $event)">
+          </div>
+
+          <!-- Time Picker Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'time_picker'">
+            <input
+              type="time"
+              class="time-input"
+              [value]="getPropertyValue(property)"
+              (change)="onPropertyChange(property, $event)">
+          </div>
+
+          <!-- Map Location Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'map_location'">
+            <div class="location-input-wrapper">
+              <input
+                type="text"
+                class="location-input"
+                [value]="getPropertyValue(property)"
+                (input)="onPropertyChange(property, $event)"
+                placeholder="Enter location or coordinates">
+              <button class="location-picker-btn" (click)="openLocationPicker(property)">
+                <span class="material-icons">location_on</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Rich Text Editor -->
+          <div class="property-editor" *ngIf="property.property_type === 'rich_text'">
+            <div class="rich-text-toolbar">
+              <button (click)="formatText('bold')" title="Bold">
+                <span class="material-icons">format_bold</span>
+              </button>
+              <button (click)="formatText('italic')" title="Italic">
+                <span class="material-icons">format_italic</span>
+              </button>
+              <button (click)="formatText('underline')" title="Underline">
+                <span class="material-icons">format_underlined</span>
+              </button>
+              <div class="toolbar-separator"></div>
+              <button (click)="formatText('left')" title="Align Left">
+                <span class="material-icons">format_align_left</span>
+              </button>
+              <button (click)="formatText('center')" title="Align Center">
+                <span class="material-icons">format_align_center</span>
+              </button>
+              <button (click)="formatText('right')" title="Align Right">
+                <span class="material-icons">format_align_right</span>
+              </button>
+            </div>
+            <div
+              class="rich-text-editor"
+              contenteditable="true"
+              [innerHTML]="getPropertyValue(property)"
+              (input)="onRichTextChange(property, $event)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div class="empty-state" *ngIf="!widget">
+  <span class="material-icons">tune</span>
+  <h3>No Widget Selected</h3>
+  <p>Select a widget to view and edit its properties</p>
+</div>

@@ -1,0 +1,282 @@
+// src/app/features/builder/device-frame/device-frame.component.scss
+
+.device-frame-container {
+  display: inline-block;
+  position: relative;
+  transition: transform 0.3s ease;
+  transform-origin: center center;
+}
+
+.device-bezel {
+  position: relative;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 0 12px rgba(0, 0, 0, 0.1),
+    inset 0 0 3px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  overflow: hidden;
+
+  // iPhone 14 specific
+  &.device-iphone14 {
+    .camera-notch {
+      width: 120px;
+      height: 30px;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000;
+      border-radius: 0 0 20px 20px;
+    }
+  }
+
+  // iPhone 14 Pro specific
+  &.device-iphone14pro {
+    background: #403E41;
+
+    .camera-notch {
+      width: 80px;
+      height: 35px;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #000;
+      border-radius: 25px;
+    }
+  }
+
+  // iPhone SE specific
+  &.device-iphonese {
+    border-radius: 36px !important;
+
+    .home-button {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2a2a2a 0%, #0a0a0a 100%);
+      border: 3px solid #1a1a1a;
+
+      .home-button-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 18px;
+        height: 18px;
+        border: 2px solid #3a3a3a;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  // Android specific
+  &.device-android {
+    background: #333333;
+
+    .status-bar {
+      background: rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  // iPad specific
+  &.device-ipad {
+    border-radius: 24px !important;
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.3),
+      0 0 0 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Power Button
+.power-button {
+  position: absolute;
+  top: 150px;
+  right: -3px;
+  width: 3px;
+  height: 60px;
+  background: linear-gradient(to bottom, #1a1a1a, #3a3a3a, #1a1a1a);
+  border-radius: 0 2px 2px 0;
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.5);
+}
+
+// Volume Buttons
+.volume-buttons {
+  position: absolute;
+  top: 120px;
+  left: -3px;
+
+  .volume-up,
+  .volume-down {
+    width: 3px;
+    height: 35px;
+    background: linear-gradient(to bottom, #1a1a1a, #3a3a3a, #1a1a1a);
+    border-radius: 2px 0 0 2px;
+    box-shadow: -1px 0 2px rgba(0, 0, 0, 0.5);
+  }
+
+  .volume-down {
+    margin-top: 10px;
+  }
+}
+
+// Silent Switch
+.silent-switch {
+  position: absolute;
+  top: 80px;
+  left: -3px;
+  width: 3px;
+  height: 25px;
+  background: linear-gradient(to bottom, #ff3b30, #ff6b60, #ff3b30);
+  border-radius: 2px 0 0 2px;
+  box-shadow: -1px 0 2px rgba(0, 0, 0, 0.5);
+}
+
+// Camera Notch
+.camera-notch {
+  position: absolute;
+  z-index: 10;
+
+  .notch-speaker {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: #1a1a1a;
+    border-radius: 2px;
+  }
+
+  .notch-camera {
+    position: absolute;
+    top: 7px;
+    right: 15px;
+    width: 6px;
+    height: 6px;
+    background: #2a2a3e;
+    border-radius: 50%;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+// Device Screen
+.device-screen {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  background: #ffffff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+// Status Bar
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  background: rgba(255, 255, 255, 0.98);
+  color: #000;
+  font-size: 12px;
+  font-weight: 600;
+  position: relative;
+  z-index: 5;
+
+  .status-bar-left,
+  .status-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+  }
+
+  .status-bar-left {
+    justify-content: flex-start;
+  }
+
+  .status-bar-right {
+    justify-content: flex-end;
+
+    .material-icons {
+      font-size: 14px;
+    }
+  }
+
+  .time {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    letter-spacing: -0.3px;
+  }
+}
+
+// Content Area
+.device-content {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+
+// Home Indicator
+.home-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 8px;
+  background: rgba(255, 255, 255, 0.98);
+
+  .home-indicator-bar {
+    width: 135px;
+    height: 4px;
+    background: #000;
+    border-radius: 2px;
+    opacity: 0.3;
+  }
+}
+
+// Speaker Grill
+.speaker-grill {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 3px;
+  z-index: 11;
+
+  .speaker-hole {
+    width: 4px;
+    height: 4px;
+    background: #0a0a0a;
+    border-radius: 50%;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .device-frame-container {
+    &[data-device="ipad"] {
+      transform: scale(0.5) !important;
+    }
+  }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .status-bar {
+    background: rgba(0, 0, 0, 0.98);
+    color: #fff;
+  }
+
+  .home-indicator {
+    background: rgba(0, 0, 0, 0.98);
+
+    .home-indicator-bar {
+      background: #fff;
+    }
+  }
+}

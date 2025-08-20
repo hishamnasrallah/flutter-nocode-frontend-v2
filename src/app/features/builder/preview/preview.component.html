@@ -1,0 +1,150 @@
+<!-- src/app/features/builder/preview/preview.component.html -->
+
+<div class="preview-overlay" [@slideInUp]>
+  <!-- Backdrop -->
+  <div class="preview-backdrop" (click)="onClose()"></div>
+
+  <!-- Preview Container -->
+  <div class="preview-container">
+    <!-- Preview Toolbar -->
+    <div class="preview-toolbar">
+      <div class="toolbar-left">
+        <h2 class="preview-title">Preview Mode</h2>
+
+        <!-- Hot Reload Indicator -->
+        <div class="hot-reload-indicator" [class.active]="hotReloadEnabled">
+          <span class="material-icons">{{ hotReloadEnabled ? 'sync' : 'sync_disabled' }}</span>
+          <span class="indicator-text">Hot Reload {{ hotReloadEnabled ? 'On' : 'Off' }}</span>
+        </div>
+      </div>
+
+      <div class="toolbar-center">
+        <!-- Device Selector -->
+        <div class="device-selector">
+          <button
+            class="device-btn"
+            *ngFor="let device of availableDevices"
+            [class.active]="currentDevice === device.id"
+            (click)="selectDevice(device.id)"
+            [title]="device.name">
+            <span class="material-icons">{{ device.icon }}</span>
+            <span class="device-label">{{ device.name }}</span>
+          </button>
+        </div>
+
+        <!-- Orientation Toggle -->
+        <button
+          class="orientation-btn"
+          (click)="toggleOrientation()"
+          [title]="orientation === 'portrait' ? 'Switch to Landscape' : 'Switch to Portrait'">
+          <span class="material-icons">
+            {{ orientation === 'portrait' ? 'stay_current_portrait' : 'stay_current_landscape' }}
+          </span>
+        </button>
+      </div>
+
+      <div class="toolbar-right">
+        <!-- Zoom Controls -->
+        <div class="zoom-controls">
+          <button
+            class="zoom-btn"
+            (click)="decreaseZoom()"
+            [disabled]="currentZoom <= 25">
+            <span class="material-icons">remove</span>
+          </button>
+
+          <div class="zoom-selector">
+            <select [(ngModel)]="currentZoom" (change)="onZoomChange()">
+              <option *ngFor="let preset of zoomPresets" [value]="preset">
+                {{ preset }}%
+              </option>
+            </select>
+          </div>
+
+          <button
+            class="zoom-btn"
+            (click)="increaseZoom()"
+            [disabled]="currentZoom >= 200">
+            <span class="material-icons">add</span>
+          </button>
+
+          <button
+            class="zoom-btn"
+            (click)="resetZoom()"
+            title="Reset Zoom">
+            <span class="material-icons">fit_screen</span>
+          </button>
+        </div>
+
+        <!-- Close Button -->
+        <button class="close-btn" (click)="onClose()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Preview Content -->
+    <div class="preview-content" [class.landscape]="orientation === 'landscape'">
+      <!-- Device Frame with Content -->
+      <app-device-frame
+        [deviceType]="currentDevice"
+        [zoom]="currentZoom">
+
+        <!-- App Content -->
+        <div class="app-preview-content">
+          <!-- App Bar (if enabled) -->
+          <div class="app-bar" *ngIf="screen?.show_app_bar">
+            <button class="back-button" *ngIf="screen?.show_back_button">
+              <span class="material-icons">arrow_back</span>
+            </button>
+            <h3 class="app-bar-title">{{ screen?.app_bar_title || application?.name }}</h3>
+          </div>
+
+          <!-- Screen Content -->
+          <div
+            class="screen-content"
+            [style.backgroundColor]="screen?.background_color || '#FFFFFF'">
+
+            <!-- Render widgets -->
+            <div class="widgets-container" *ngIf="widgets && widgets.length > 0">
+              <div *ngFor="let widget of widgets" class="preview-widget">
+                <!-- Widget rendering logic here -->
+                {{ widget.widget_type }}
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-preview" *ngIf="!widgets || widgets.length === 0">
+              <span class="material-icons">devices</span>
+              <p>No widgets to preview</p>
+              <small>Add widgets to see them in preview</small>
+            </div>
+          </div>
+        </div>
+      </app-device-frame>
+    </div>
+
+    <!-- Preview Actions -->
+    <div class="preview-actions">
+      <button class="action-btn" (click)="sharePreview()">
+        <span class="material-icons">share</span>
+        Share
+      </button>
+
+      <button class="action-btn" (click)="downloadScreenshot()">
+        <span class="material-icons">photo_camera</span>
+        Screenshot
+      </button>
+
+      <button class="action-btn" (click)="toggleHotReload()">
+        <span class="material-icons">{{ hotReloadEnabled ? 'sync_disabled' : 'sync' }}</span>
+        {{ hotReloadEnabled ? 'Disable' : 'Enable' }} Hot Reload
+      </button>
+
+      <button class="action-btn primary" (click)="refreshPreview()">
+        <span class="material-icons">refresh</span>
+        Refresh
+      </button>
+    </div>
+  </div>
+</div>

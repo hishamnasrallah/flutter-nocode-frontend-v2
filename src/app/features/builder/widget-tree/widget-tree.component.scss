@@ -1,0 +1,395 @@
+// src/app/features/builder/widget-tree/widget-tree.component.scss
+
+.widget-tree {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+// Search Box
+.tree-search {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+
+  .material-icons {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 20px;
+  }
+
+  input {
+    width: 100%;
+    padding: 8px 36px 8px 36px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .clear-btn {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #f5f5f5;
+    }
+
+    .material-icons {
+      position: static;
+      transform: none;
+      font-size: 16px;
+    }
+  }
+}
+
+// Tree Container
+.tree-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
+}
+
+// Empty States
+.empty-state,
+.no-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #999;
+
+  .material-icons {
+    font-size: 48px;
+    color: #d0d0d0;
+    margin-bottom: 12px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
+
+  small {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #999;
+  }
+}
+
+// Tree Node
+.tree-node {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  user-select: none;
+
+  &:hover {
+    background: #f5f5f5;
+
+    .tree-actions,
+    .drag-handle {
+      opacity: 1;
+    }
+  }
+
+  &.selected {
+    background: #e3f2fd;
+
+    &:hover {
+      background: #bbdefb;
+    }
+
+    .tree-label {
+      color: #1976d2;
+      font-weight: 500;
+    }
+  }
+
+  &.dragging {
+    opacity: 0.5;
+  }
+
+  &.drag-over {
+    background: rgba(102, 126, 234, 0.1);
+    border: 1px dashed #667eea;
+  }
+
+  // Expand/Collapse Toggle
+  .tree-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    .material-icons {
+      font-size: 18px;
+      color: #666;
+      transition: transform 0.2s;
+    }
+
+    &:hover .material-icons {
+      color: #333;
+    }
+  }
+
+  .tree-toggle-spacer {
+    width: 20px;
+    flex-shrink: 0;
+  }
+
+  // Widget Icon
+  .tree-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+    flex-shrink: 0;
+
+    .material-icons {
+      font-size: 18px;
+      color: #666;
+    }
+  }
+
+  // Widget Label
+  .tree-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #333;
+    overflow: hidden;
+
+    .widget-type {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .widget-id {
+      color: #999;
+      font-size: 11px;
+      font-family: monospace;
+      background: #f5f5f5;
+      padding: 1px 4px;
+      border-radius: 3px;
+    }
+  }
+
+  // Actions
+  .tree-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s;
+
+    .action-btn {
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      .material-icons {
+        font-size: 16px;
+        color: #666;
+      }
+
+      &.delete:hover {
+        background: rgba(244, 67, 54, 0.1);
+
+        .material-icons {
+          color: #f44336;
+        }
+      }
+    }
+  }
+
+  // Drag Handle
+  .drag-handle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    opacity: 0;
+    transition: opacity 0.2s;
+
+    .material-icons {
+      font-size: 16px;
+      color: #999;
+    }
+  }
+}
+
+// Context Menu
+.context-menu {
+  position: fixed;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  animation: fadeIn 0.2s;
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 13px;
+    color: #333;
+    transition: background 0.2s;
+
+    &:hover:not(:disabled) {
+      background: #f5f5f5;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.danger {
+      color: #f44336;
+
+      .material-icons {
+        color: #f44336;
+      }
+    }
+
+    .material-icons {
+      font-size: 18px;
+      color: #666;
+    }
+
+    span:not(.material-icons):not(.shortcut) {
+      flex: 1;
+    }
+
+    .shortcut {
+      font-size: 11px;
+      color: #999;
+      margin-left: auto;
+    }
+  }
+
+  .menu-divider {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 4px 0;
+  }
+}
+
+// Drop Indicator
+.drop-position-indicator {
+  position: absolute;
+  background: #2196f3;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.2s;
+
+  &.horizontal {
+    height: 2px;
+    left: 0;
+    right: 0;
+  }
+
+  &.vertical {
+    width: 2px;
+    top: 0;
+    bottom: 0;
+  }
+
+  &.visible {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Scrollbar
+.tree-container {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 3px;
+
+    &:hover {
+      background: #b0b0b0;
+    }
+  }
+}

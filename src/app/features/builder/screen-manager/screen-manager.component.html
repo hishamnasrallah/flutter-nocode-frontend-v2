@@ -1,0 +1,306 @@
+<!-- src/app/features/builder/screen-manager/screen-manager.component.html -->
+
+<div class="screen-manager">
+  <!-- Screen Tabs -->
+  <div class="screen-tabs">
+    <div
+      class="tab-container"
+      (dragover)="onTabDragOver($event)"
+      (drop)="onTabDrop($event)">
+
+      <!-- Screen Tabs -->
+      <div
+        class="screen-tab"
+        *ngFor="let screen of screens; let i = index"
+        [class.active]="isActiveScreen(screen)"
+        [class.home]="screen.is_home_screen"
+        (click)="selectScreen(screen)"
+        draggable="true"
+        (dragstart)="onTabDragStart($event, screen, i)"
+        (dragend)="onTabDragEnd($event)"
+        [attr.data-screen-id]="screen.id">
+
+        <!-- Home Indicator -->
+        <span class="home-indicator" *ngIf="screen.is_home_screen">
+          <span class="material-icons">star</span>
+        </span>
+
+        <!-- Screen Name -->
+        <span class="tab-name">{{ screen.name }}</span>
+
+        <!-- Screen Route -->
+        <span class="tab-route">{{ screen.route_name }}</span>
+
+        <!-- Tab Actions -->
+        <div class="tab-actions">
+          <button
+            class="tab-action"
+            (click)="editScreen(screen, $event)"
+            title="Edit">
+            <span class="material-icons">edit</span>
+          </button>
+          <button
+            class="tab-action"
+            (click)="deleteScreen(screen, $event)"
+            title="Delete"
+            [disabled]="screens.length <= 1">
+            <span class="material-icons">close</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drop Indicator -->
+      <div
+        class="drop-indicator"
+        *ngIf="showDropIndicator"
+        [style.left.px]="dropIndicatorPosition">
+      </div>
+    </div>
+
+    <!-- Add Screen Button -->
+    <button class="add-screen-btn" (click)="addScreen()">
+      <span class="material-icons">add</span>
+    </button>
+  </div>
+
+  <!-- Screen Properties -->
+  <div class="screen-properties" *ngIf="editingScreen">
+    <h3>Screen Properties</h3>
+
+    <form [formGroup]="screenForm">
+      <!-- Screen Name -->
+      <div class="form-group">
+        <label for="screenName">Screen Name</label>
+        <input
+          type="text"
+          id="screenName"
+          formControlName="name"
+          placeholder="Enter screen name">
+        <div class="error" *ngIf="screenForm.get('name')?.invalid && screenForm.get('name')?.touched">
+          Screen name is required
+        </div>
+      </div>
+
+      <!-- Route Name -->
+      <div class="form-group">
+        <label for="routeName">Route Path</label>
+        <div class="input-group">
+          <span class="input-prefix">/</span>
+          <input
+            type="text"
+            id="routeName"
+            formControlName="route_name"
+            placeholder="route-name">
+        </div>
+        <div class="error" *ngIf="screenForm.get('route_name')?.invalid && screenForm.get('route_name')?.touched">
+          {{ getRouteError() }}
+        </div>
+      </div>
+
+      <!-- App Bar Title -->
+      <div class="form-group">
+        <label for="appBarTitle">App Bar Title</label>
+        <input
+          type="text"
+          id="appBarTitle"
+          formControlName="app_bar_title"
+          placeholder="Enter app bar title">
+      </div>
+
+      <!-- Options -->
+      <div class="form-options">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="is_home_screen">
+          <span class="checkbox-custom"></span>
+          <span>Set as Home Screen</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="show_app_bar">
+          <span class="checkbox-custom"></span>
+          <span>Show App Bar</span>
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="show_back_button"
+            [disabled]="!screenForm.get('show_app_bar')?.value">
+          <span class="checkbox-custom"></span>
+          <span>Show Back Button</span>
+        </label>
+      </div>
+
+      <!-- Background Color -->
+      <div class="form-group">
+        <label for="backgroundColor">Background Color</label>
+        <div class="color-input">
+          <input
+            type="color"
+            id="backgroundColor"
+            formControlName="background_color"
+            class="color-picker">
+          <input
+            type="text"
+            formControlName="background_color"
+            placeholder="#FFFFFF"
+            class="color-text">
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancelEdit()">
+          Cancel
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="saveScreen()"
+          [disabled]="screenForm.invalid || !screenForm.dirty">
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Add Screen Dialog -->
+  <div class="add-dialog" *ngIf="showAddDialog">
+    <div class="dialog-overlay" (click)="closeAddDialog()"></div>
+    <div class="dialog-content">
+      <h3>Add New Screen</h3>
+
+      <form [formGroup]="newScreenForm">
+        <div class="form-group">
+          <label for="newScreenName">Screen Name *</label>
+          <input
+            type="text"
+            id="newScreenName"
+            formControlName="name"
+            placeholder="Enter screen name">
+        </div>
+
+        <div class="form-group">
+          <label for="newRouteName">Route Path *</label>
+          <div class="input-group">
+            <span class="input-prefix">/</span>
+            <input
+              type="text"
+              id="newRouteName"
+              formControlName="route_name"
+              placeholder="route-name">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Template</label>
+          <div class="template-options">
+            <button
+              type="button"
+              class="template-option"
+              [class.selected]="selectedTemplate === 'blank'"
+              (click)="selectTemplate('blank')">
+              <span class="material-icons">add_box</span>
+              <span>Blank</span>
+            </button>
+            <button
+              type="button"
+              class="template-option"
+              [class.selected]="selectedTemplate === 'withAppBar'"
+              (click)="selectTemplate('withAppBar')">
+              <span class="material-icons">web_asset</span>
+              <span>With App Bar</span>
+            </button>
+            <button
+              type="button"
+              class="template-option"
+              [class.selected]="selectedTemplate === 'withNavigation'"
+              (click)="selectTemplate('withNavigation')">
+              <span class="material-icons">bottom_navigation</span>
+              <span>With Navigation</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeAddDialog()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="createScreen()"
+            [disabled]="newScreenForm.invalid">
+            Create Screen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Duplicate Screen Dialog -->
+  <div class="duplicate-dialog" *ngIf="duplicatingScreen">
+    <div class="dialog-overlay" (click)="closeDuplicateDialog()"></div>
+    <div class="dialog-content">
+      <h3>Duplicate Screen</h3>
+      <p>Create a copy of "{{ duplicatingScreen.name }}"</p>
+
+      <form [formGroup]="duplicateForm">
+        <div class="form-group">
+          <label for="duplicateName">New Screen Name *</label>
+          <input
+            type="text"
+            id="duplicateName"
+            formControlName="name"
+            placeholder="Enter screen name">
+        </div>
+
+        <div class="form-group">
+          <label for="duplicateRoute">New Route Path *</label>
+          <div class="input-group">
+            <span class="input-prefix">/</span>
+            <input
+              type="text"
+              id="duplicateRoute"
+              formControlName="route_name"
+              placeholder="route-name">
+          </div>
+        </div>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="copy_widgets">
+          <span class="checkbox-custom"></span>
+          <span>Copy all widgets</span>
+        </label>
+
+        <div class="dialog-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeDuplicateDialog()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="confirmDuplicate()"
+            [disabled]="duplicateForm.invalid">
+            Duplicate Screen
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
