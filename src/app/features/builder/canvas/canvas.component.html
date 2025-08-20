@@ -8,7 +8,7 @@
   tabindex="0">
 
   <!-- Grid Background -->
-  <div class="canvas-grid" *ngIf="canvasService.canvasState.gridEnabled"></div>
+  <div class="canvas-grid" *ngIf="publicCanvasService.canvasState.gridEnabled"></div>
 
   <!-- Device Frame -->
   <app-device-frame
@@ -80,6 +80,6 @@
   <!-- Drag Ghost (for visual feedback) -->
   <div class="drag-ghost" *ngIf="isDragging">
     <span class="material-icons">widgets</span>
-    <span>{{ dragDropService.dragData?.widgetType || 'Widget' }}</span>
+    <span>{{ publicDragDropService.dragData?.widgetType || 'Widget' }}</span>
   </div>
 </div>

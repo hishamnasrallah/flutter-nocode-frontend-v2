@@ -184,10 +184,11 @@ export class DroppableDirective implements OnInit, OnDestroy {
 
   // Handle custom drop event from touch devices
   @HostListener('customDrop', ['$event'])
-  onCustomDrop(event: CustomEvent): void {
+  onCustomDrop(event: Event): void {
     if (!this.dropEnabled) return;
 
-    const detail = event.detail;
+    const customEvent = event as CustomEvent;
+    const detail = customEvent.detail;
     const dragData = detail.dragData;
 
     if (!dragData || !this.canAcceptDrop(dragData)) return;

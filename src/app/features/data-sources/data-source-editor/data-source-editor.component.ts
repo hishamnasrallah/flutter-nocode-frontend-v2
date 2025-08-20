@@ -179,7 +179,7 @@ export class DataSourceEditorComponent implements OnInit, OnDestroy {
   }
 
   selectType(type: string): void {
-    this.dataSource.data_source_type = type;
+    this.dataSource.data_source_type = type as DataSource['data_source_type'];
 
     // Set default configurations based on type
     switch (type) {
@@ -449,7 +449,7 @@ export class DataSourceEditorComponent implements OnInit, OnDestroy {
         data_source: this.dataSourceId || 0,
         field_name: key,
         display_name: this.formatDisplayName(key),
-        field_type: this.detectFieldType(value),
+        field_type: this.detectFieldType(value) as FieldType,
         is_required: false,
         created_at: ''
       };

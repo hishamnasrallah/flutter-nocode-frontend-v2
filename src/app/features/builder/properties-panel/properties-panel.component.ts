@@ -172,12 +172,20 @@ export class PropertiesPanelComponent implements OnChanges {
     // Group properties by category
     const groupedProps = new Map<string, WidgetProperty[]>();
 
+    const propertyDefinitions = this.propertyService.getPropertyDefinitions(this.widget.widget_type);
+
     widgetProperties.forEach(prop => {
       const category = this.getPropertyCategory(prop);
+      const definition = propertyDefinitions.find(def => def.name === prop.property_name);
+
       if (!groupedProps.has(category)) {
         groupedProps.set(category, []);
       }
-      groupedProps.get(category)!.push(prop);
+
+      groupedProps.get(category)!.push({
+        ...prop,
+        display_name: definition?.label || prop.property_name
+      });
     });
 
     // Create property groups

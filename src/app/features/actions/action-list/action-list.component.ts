@@ -341,7 +341,7 @@ export class ActionListComponent implements OnInit, OnDestroy {
     this.closeTestDialog();
   }
 
-  onActionSave(action: Action): void {
+  onActionSave(action: Partial<Action>): void {
     if (!this.currentApplication) return;
 
     const actionData = {

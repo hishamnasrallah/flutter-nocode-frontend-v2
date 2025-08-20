@@ -13,7 +13,7 @@
     <!-- Build Status (shown when building) -->
     <div class="build-status" *ngIf="isBuilding">
       <div class="status-icon" [ngClass]="getStatusClass()">
-        <span class="material-icons spinning" *ngIf="buildStatus === 'building'">sync</span>
+        <span class="material-icons spinning" *ngIf="buildStatus === 'started'">sync</span>
         <span class="material-icons" *ngIf="buildStatus === 'success'">check_circle</span>
         <span class="material-icons" *ngIf="buildStatus === 'failed'">error</span>
       </div>
@@ -23,7 +23,7 @@
         <p class="status-message">{{ currentStatusMessage }}</p>
 
         <!-- Progress Bar -->
-        <div class="progress-bar" *ngIf="buildStatus === 'building'">
+        <div class="progress-bar" *ngIf="buildStatus === 'started'">
           <div class="progress-fill" [style.width.%]="buildProgress"></div>
         </div>
 
@@ -237,7 +237,7 @@
     <div class="dialog-footer">
       <button class="btn btn-secondary"
               (click)="onClose()"
-              [disabled]="isBuilding && buildStatus === 'building'">
+              [disabled]="isBuilding && buildStatus === 'started'">
         {{ isBuilding ? 'Close' : 'Cancel' }}
       </button>
 
@@ -251,7 +251,7 @@
 
       <button class="btn btn-danger"
               (click)="cancelBuild()"
-              *ngIf="isBuilding && buildStatus === 'building'">
+              *ngIf="isBuilding && buildStatus === 'started'">
         <span class="material-icons">stop</span>
         Cancel Build
       </button>

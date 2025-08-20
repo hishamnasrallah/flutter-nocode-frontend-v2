@@ -1,13 +1,13 @@
 // src/app/features/builder/screen-manager/screen-manager.component.ts
 
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
-import { Application } from '../../../core/models/application.model';
-import { Screen } from '../../../core/models/screen.model';
-import { ScreenService } from '../../../core/services/screen.service';
-import { NotificationService } from '../../../core/services/notification.service';
+import {Component, Input, OnInit, OnDestroy} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {Subject, takeUntil} from 'rxjs';
+import {Application} from '../../../core/models/application.model';
+import {Screen} from '../../../core/models/screen.model';
+import {ScreenService} from '../../../core/services/screen.service';
+import {NotificationService} from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-screen-manager',
@@ -69,7 +69,7 @@ export class ScreenManagerComponent implements OnInit, OnDestroy {
     // Watch for show_app_bar changes
     this.screenForm.get('show_app_bar')?.valueChanges.subscribe(showAppBar => {
       if (!showAppBar) {
-        this.screenForm.patchValue({ show_back_button: false });
+        this.screenForm.patchValue({show_back_button: false});
       }
     });
   }
@@ -197,7 +197,7 @@ export class ScreenManagerComponent implements OnInit, OnDestroy {
           this.editingScreen = null;
 
           // If setting as home screen, update others
-          if (formValue.is_home_screen && !this.editingScreen?.is_home_screen) {
+          if (formValue.is_home_screen && this.editingScreen && !this.editingScreen.is_home_screen) {
             this.setAsHome(screen);
           }
         },

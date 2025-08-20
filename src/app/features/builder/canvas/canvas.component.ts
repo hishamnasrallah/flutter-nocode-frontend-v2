@@ -50,6 +50,13 @@ export class CanvasComponent implements OnInit, OnDestroy {
     private dragDropService: DragDropService
   ) {}
 
+get publicCanvasService() {
+  return this.canvasService;
+}
+
+get publicDragDropService() {
+  return this.dragDropService;
+}
   ngOnInit(): void {
     this.buildWidgetTree();
     this.subscribeToServices();

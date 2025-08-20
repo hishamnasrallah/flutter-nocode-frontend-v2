@@ -427,7 +427,7 @@ export class BuildDialogComponent implements OnInit, OnDestroy {
 
   getStatusClass(): string {
     switch (this.buildStatus) {
-      case 'building':
+      case 'started':
       case 'generating_code':
       case 'building_apk':
         return 'building';
@@ -525,7 +525,7 @@ export class BuildDialogComponent implements OnInit, OnDestroy {
   }
 
   onClose(): void {
-    if (this.isBuilding && this.buildStatus === 'building') {
+    if (this.isBuilding && this.buildStatus === 'started') {
       const confirmed = confirm('A build is in progress. Are you sure you want to close?');
       if (!confirmed) return;
     }

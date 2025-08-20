@@ -1,6 +1,6 @@
 // src/app/features/auth/register/register.component.scss
 
-@import '../login/login.component.scss';
+@use '../login/login.component.scss';
 
 // Additional styles specific to register
 .auth-card-register {

@@ -1,12 +1,12 @@
 // src/app/features/builder/widget-tree/widget-tree.component.ts
 
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { DraggableDirective } from '../../../core/directives/draggable.directive';
-import { DroppableDirective } from '../../../core/directives/droppable.directive';
-import { Widget, WidgetType, CONTAINER_WIDGETS } from '../../../core/models/widget.model';
-import { TreeBuilder } from '../../../core/utils/tree-builder';
+import {Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, HostListener} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {DraggableDirective} from '../../../core/directives/draggable.directive';
+import {DroppableDirective} from '../../../core/directives/droppable.directive';
+import {Widget, WidgetType, CONTAINER_WIDGETS} from '../../../core/models/widget.model';
+import {TreeBuilder} from '../../../core/utils/tree-builder';
 
 export interface TreeNode {
   widget: Widget;
@@ -29,7 +29,7 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
   @Output() widgetSelected = new EventEmitter<Widget>();
   @Output() widgetDeleted = new EventEmitter<number>();
   @Output() widgetDuplicated = new EventEmitter<Widget>();
-  @Output() widgetReordered = new EventEmitter<{widget: Widget, newParent: number | null, newIndex: number}>();
+  @Output() widgetReordered = new EventEmitter<{ widget: Widget, newParent: number | null, newIndex: number }>();
 
   treeNodes: TreeNode[] = [];
   visibleNodes: TreeNode[] = [];
@@ -38,7 +38,7 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
 
   // Context menu
   contextMenuVisible = false;
-  contextMenuPosition = { x: 0, y: 0 };
+  contextMenuPosition = {x: 0, y: 0};
   contextMenuNode: TreeNode | null = null;
   hasClipboard = false;
   canMoveUp = false;
@@ -140,9 +140,9 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
     const sourceWidget = event.widget;
     if (sourceWidget && this.canAcceptChildren(targetNode.widget.widget_type)) {
       this.widgetReordered.emit({
-        widget: sourceWidget,
-        newParent: targetNode.widget.id,
-        newIndex: targetNode.children.length
+        widget: widget,
+        newParent: widget.parent_widget as number | null,
+        newIndex: currentIndex - 1
       });
     }
   }
@@ -271,8 +271,8 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
     if (currentIndex > 0) {
       this.widgetReordered.emit({
         widget: widget,
-        newParent: widget.parent_widget,
-        newIndex: currentIndex - 1
+        newParent: widget.parent_widget as number | null,
+        newIndex: currentIndex + 1
       });
     }
   }

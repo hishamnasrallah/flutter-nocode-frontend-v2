@@ -5,6 +5,7 @@ export interface WidgetProperty {
   widget: number;
   property_name: string;
   property_type: PropertyType;
+  display_name?: string;
   // Value fields - only ONE will be populated based on property_type
   string_value?: string;
   integer_value?: number;
