@@ -1,0 +1,123 @@
+<!-- src/app/shared/components/loading-spinner/loading-spinner.component.html -->
+
+<!-- Overlay Mode -->
+<div class="spinner-overlay"
+     *ngIf="overlay && visible"
+     [@fadeIn]
+     [class.spinner-overlay-blur]="blur">
+  <div class="spinner-content">
+    <ng-container *ngTemplateOutlet="spinnerTemplate"></ng-container>
+  </div>
+</div>
+
+<!-- Inline Mode -->
+<div class="spinner-container"
+     *ngIf="!overlay && visible"
+     [class]="'spinner-size-' + size">
+  <ng-container *ngTemplateOutlet="spinnerTemplate"></ng-container>
+</div>
+
+<!-- Spinner Template -->
+<ng-template #spinnerTemplate>
+  <!-- Circular Spinner -->
+  <div class="spinner-circular" *ngIf="type === 'circular'" [@rotateIn]>
+    <svg class="circular-svg" viewBox="0 0 50 50">
+      <circle
+        class="circular-path"
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        [style.stroke]="color"
+        stroke-width="4">
+      </circle>
+    </svg>
+  </div>
+
+  <!-- Dots Spinner -->
+  <div class="spinner-dots" *ngIf="type === 'dots'" [@scaleIn]>
+    <div class="dot"
+         *ngFor="let dot of [1, 2, 3, 4]"
+         [style.background-color]="color"
+         [style.animation-delay]="(dot - 1) * 0.15 + 's'">
+    </div>
+  </div>
+
+  <!-- Bars Spinner -->
+  <div class="spinner-bars" *ngIf="type === 'bars'" [@slideIn]>
+    <div class="bar"
+         *ngFor="let bar of [1, 2, 3, 4, 5]"
+         [style.background-color]="color"
+         [style.animation-delay]="(bar - 1) * 0.1 + 's'">
+    </div>
+  </div>
+
+  <!-- Pulse Spinner -->
+  <div class="spinner-pulse" *ngIf="type === 'pulse'" [@pulseIn]>
+    <div class="pulse-ring" [style.border-color]="color"></div>
+    <div class="pulse-ring" [style.border-color]="color"></div>
+    <div class="pulse-ring" [style.border-color]="color"></div>
+  </div>
+
+  <!-- Wave Spinner -->
+  <div class="spinner-wave" *ngIf="type === 'wave'" [@slideIn]>
+    <div class="wave-bar"
+         *ngFor="let bar of [1, 2, 3, 4, 5]"
+         [style.background-color]="color"
+         [style.animation-delay]="(bar - 1) * 0.1 + 's'">
+    </div>
+  </div>
+
+  <!-- Grid Spinner -->
+  <div class="spinner-grid" *ngIf="type === 'grid'" [@scaleIn]>
+    <div class="grid-item"
+         *ngFor="let item of [1, 2, 3, 4, 5, 6, 7, 8, 9]"
+         [style.background-color]="color">
+    </div>
+  </div>
+
+  <!-- Progress Ring -->
+  <div class="spinner-progress" *ngIf="type === 'progress'" [@scaleIn]>
+    <svg class="progress-svg" viewBox="0 0 100 100">
+      <circle
+        class="progress-bg"
+        cx="50"
+        cy="50"
+        r="45"
+        fill="none"
+        stroke="#e0e0e0"
+        stroke-width="8">
+      </circle>
+      <circle
+        class="progress-fill"
+        cx="50"
+        cy="50"
+        r="45"
+        fill="none"
+        [style.stroke]="color"
+        stroke-width="8"
+        [style.stroke-dasharray]="circumference"
+        [style.stroke-dashoffset]="strokeDashOffset">
+      </circle>
+    </svg>
+    <div class="progress-text" *ngIf="showPercentage">
+      {{ percentage }}%
+    </div>
+  </div>
+
+  <!-- Loading Text -->
+  <div class="spinner-text"
+       *ngIf="text"
+       [style.color]="textColor || color">
+    {{ text }}
+    <span class="loading-dots" *ngIf="animatedText">
+      <span class="dot" *ngFor="let dot of [1, 2, 3]"
+            [style.animation-delay]="(dot - 1) * 0.3 + 's'">.</span>
+    </span>
+  </div>
+
+  <!-- Custom Content -->
+  <div class="spinner-custom" *ngIf="type === 'custom'">
+    <ng-content></ng-content>
+  </div>
+</ng-template>

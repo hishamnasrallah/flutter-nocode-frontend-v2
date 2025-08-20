@@ -1,0 +1,76 @@
+<!-- src/app/shared/components/confirmation-dialog/confirmation-dialog.component.html -->
+
+<div class="dialog-backdrop"
+     *ngIf="isOpen"
+     [@fadeIn]
+     (click)="onBackdropClick($event)"
+     (keydown.escape)="onEscape()">
+
+  <div class="dialog-container"
+       [@slideIn]
+       role="dialog"
+       [attr.aria-labelledby]="dialogId + '-title'"
+       [attr.aria-describedby]="dialogId + '-message'"
+       tabindex="-1"
+       #dialogElement>
+
+    <!-- Dialog Header -->
+    <div class="dialog-header" [class]="'dialog-header-' + type">
+      <div class="dialog-icon-wrapper">
+        <span class="material-icons dialog-icon">{{ getIcon() }}</span>
+      </div>
+    </div>
+
+    <!-- Dialog Content -->
+    <div class="dialog-content">
+      <h2 class="dialog-title" [id]="dialogId + '-title'">
+        {{ title || getDefaultTitle() }}
+      </h2>
+
+      <p class="dialog-message" [id]="dialogId + '-message'">
+        {{ message }}
+      </p>
+
+      <!-- Additional Content Slot -->
+      <div class="dialog-extra-content" *ngIf="hasExtraContent">
+        <ng-content></ng-content>
+      </div>
+
+      <!-- Input Field (for prompt dialogs) -->
+      <div class="dialog-input" *ngIf="showInput">
+        <input
+          type="text"
+          [(ngModel)]="inputValue"
+          [placeholder]="inputPlaceholder"
+          (keydown.enter)="onConfirm()"
+          class="dialog-input-field"
+          #inputField>
+        <div class="dialog-input-error" *ngIf="inputError">
+          {{ inputError }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialog Actions -->
+    <div class="dialog-actions">
+      <button
+        type="button"
+        class="dialog-btn dialog-btn-cancel"
+        (click)="onCancel()"
+        [disabled]="isProcessing"
+        *ngIf="showCancelButton">
+        {{ cancelText }}
+      </button>
+
+      <button
+        type="button"
+        class="dialog-btn dialog-btn-confirm"
+        [class]="'dialog-btn-' + type"
+        (click)="onConfirm()"
+        [disabled]="isProcessing || !canConfirm()">
+        <span class="spinner" *ngIf="isProcessing"></span>
+        <span *ngIf="!isProcessing">{{ confirmText }}</span>
+      </button>
+    </div>
+  </div>
+</div>
