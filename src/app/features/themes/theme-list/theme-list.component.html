@@ -1,0 +1,344 @@
+<!-- src/app/features/themes/theme-list/theme-list.component.html -->
+
+<div class="themes-container">
+  <!-- Header -->
+  <div class="themes-header">
+    <div class="header-content">
+      <button class="back-button" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <h1>Theme Manager</h1>
+      <div class="header-actions">
+        <button class="action-button" (click)="exportAllThemes()">
+          <span class="material-icons">file_download</span>
+          Export All
+        </button>
+        <input
+          type="file"
+          #fileInput
+          accept=".json"
+          (change)="importThemes($event)"
+          style="display: none">
+        <button class="action-button" (click)="fileInput.click()">
+          <span class="material-icons">file_upload</span>
+          Import
+        </button>
+        <button class="primary-button" (click)="createNewTheme()">
+          <span class="material-icons">add</span>
+          Create Theme
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter -->
+  <div class="search-filter-bar">
+    <div class="search-input">
+      <span class="material-icons">search</span>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="filterThemes()"
+        placeholder="Search themes...">
+    </div>
+    <div class="filter-chips">
+      <button
+        class="filter-chip"
+        [class.active]="filter === 'all'"
+        (click)="setFilter('all')">
+        All
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="filter === 'light'"
+        (click)="setFilter('light')">
+        Light
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="filter === 'dark'"
+        (click)="setFilter('dark')">
+        Dark
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="filter === 'custom'"
+        (click)="setFilter('custom')">
+        Custom
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="themes-content">
+    <!-- Preset Themes Section -->
+    <div class="themes-section" *ngIf="presetThemes.length > 0">
+      <h2 class="section-title">
+        <span class="material-icons">palette</span>
+        Material Design Presets
+      </h2>
+      <div class="themes-grid">
+        <div class="theme-card preset" *ngFor="let theme of presetThemes">
+          <div class="theme-preview">
+            <div class="color-palette">
+              <div
+                class="color-circle primary"
+                [style.background-color]="theme.primary_color"
+                [title]="'Primary: ' + theme.primary_color">
+              </div>
+              <div
+                class="color-circle accent"
+                [style.background-color]="theme.accent_color"
+                [title]="'Accent: ' + theme.accent_color">
+              </div>
+              <div
+                class="color-circle background"
+                [style.background-color]="theme.background_color"
+                [style.border]="'2px solid ' + (theme.is_dark_mode ? '#444' : '#ddd')"
+                [title]="'Background: ' + theme.background_color">
+              </div>
+              <div
+                class="color-circle text"
+                [style.background-color]="theme.text_color"
+                [title]="'Text: ' + theme.text_color">
+              </div>
+            </div>
+            <div class="theme-mockup" [style.background-color]="theme.background_color">
+              <div class="mockup-appbar" [style.background-color]="theme.primary_color">
+                <span [style.color]="getContrastColor(theme.primary_color)">App Title</span>
+              </div>
+              <div class="mockup-content">
+                <div class="mockup-text" [style.color]="theme.text_color">
+                  Lorem ipsum dolor sit amet
+                </div>
+                <div class="mockup-button" [style.background-color]="theme.accent_color">
+                  <span [style.color]="getContrastColor(theme.accent_color)">Button</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="theme-info">
+            <h3>{{ theme.name }}</h3>
+            <div class="theme-meta">
+              <span class="theme-mode" [class.dark]="theme.is_dark_mode">
+                <span class="material-icons">{{ theme.is_dark_mode ? 'dark_mode' : 'light_mode' }}</span>
+                {{ theme.is_dark_mode ? 'Dark' : 'Light' }}
+              </span>
+              <span class="theme-font">{{ theme.font_family }}</span>
+            </div>
+          </div>
+          <div class="theme-actions">
+            <button class="action-btn primary" (click)="applyPresetTheme(theme)">
+              <span class="material-icons">brush</span>
+              Use This Theme
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Themes Section -->
+    <div class="themes-section">
+      <h2 class="section-title">
+        <span class="material-icons">edit</span>
+        Custom Themes
+        <span class="count">({{ filteredThemes.length }})</span>
+      </h2>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p>Loading themes...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && filteredThemes.length === 0">
+        <span class="material-icons">palette</span>
+        <h3>No Custom Themes</h3>
+        <p>Create your first custom theme or use a preset</p>
+        <button class="primary-button" (click)="createNewTheme()">
+          <span class="material-icons">add</span>
+          Create Theme
+        </button>
+      </div>
+
+      <!-- Themes Grid -->
+      <div class="themes-grid" *ngIf="!isLoading && filteredThemes.length > 0">
+        <div
+          class="theme-card"
+          [class.selected]="selectedTheme?.id === theme.id"
+          [class.applied]="currentTheme?.id === theme.id"
+          *ngFor="let theme of filteredThemes">
+
+          <!-- Theme Preview -->
+          <div class="theme-preview" (click)="previewTheme(theme)">
+            <div class="color-palette">
+              <div
+                class="color-circle primary"
+                [style.background-color]="theme.primary_color"
+                [title]="'Primary: ' + theme.primary_color">
+              </div>
+              <div
+                class="color-circle accent"
+                [style.background-color]="theme.accent_color"
+                [title]="'Accent: ' + theme.accent_color">
+              </div>
+              <div
+                class="color-circle background"
+                [style.background-color]="theme.background_color"
+                [style.border]="'2px solid ' + (theme.is_dark_mode ? '#444' : '#ddd')"
+                [title]="'Background: ' + theme.background_color">
+              </div>
+              <div
+                class="color-circle text"
+                [style.background-color]="theme.text_color"
+                [title]="'Text: ' + theme.text_color">
+              </div>
+            </div>
+
+            <!-- Mini Preview -->
+            <div class="theme-mockup" [style.background-color]="theme.background_color">
+              <div class="mockup-appbar" [style.background-color]="theme.primary_color">
+                <span [style.color]="getContrastColor(theme.primary_color)">App Title</span>
+              </div>
+              <div class="mockup-content">
+                <div class="mockup-text" [style.color]="theme.text_color">
+                  Lorem ipsum dolor sit amet
+                </div>
+                <div class="mockup-button" [style.background-color]="theme.accent_color">
+                  <span [style.color]="getContrastColor(theme.accent_color)">Button</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Applied Badge -->
+            <div class="applied-badge" *ngIf="currentTheme?.id === theme.id">
+              <span class="material-icons">check_circle</span>
+              Applied
+            </div>
+          </div>
+
+          <!-- Theme Info -->
+          <div class="theme-info">
+            <h3>{{ theme.name }}</h3>
+            <div class="theme-meta">
+              <span class="theme-mode" [class.dark]="theme.is_dark_mode">
+                <span class="material-icons">{{ theme.is_dark_mode ? 'dark_mode' : 'light_mode' }}</span>
+                {{ theme.is_dark_mode ? 'Dark' : 'Light' }}
+              </span>
+              <span class="theme-font">{{ theme.font_family }}</span>
+            </div>
+            <div class="theme-date">
+              Updated {{ getRelativeTime(theme.updated_at) }}
+            </div>
+          </div>
+
+          <!-- Theme Actions -->
+          <div class="theme-actions">
+            <button
+              class="action-btn primary"
+              (click)="applyTheme(theme)"
+              [disabled]="currentTheme?.id === theme.id">
+              <span class="material-icons">{{ currentTheme?.id === theme.id ? 'check' : 'brush' }}</span>
+              {{ currentTheme?.id === theme.id ? 'Applied' : 'Apply' }}
+            </button>
+            <button class="action-btn" (click)="editTheme(theme)">
+              <span class="material-icons">edit</span>
+              Edit
+            </button>
+            <button class="action-btn" (click)="duplicateTheme(theme)">
+              <span class="material-icons">content_copy</span>
+              Duplicate
+            </button>
+            <div class="action-menu">
+              <button class="action-btn icon" (click)="toggleMenu(theme)">
+                <span class="material-icons">more_vert</span>
+              </button>
+              <div class="dropdown-menu" *ngIf="menuOpenFor === theme.id">
+                <button (click)="exportTheme(theme)">
+                  <span class="material-icons">file_download</span>
+                  Export
+                </button>
+                <button (click)="shareTheme(theme)">
+                  <span class="material-icons">share</span>
+                  Share
+                </button>
+                <button (click)="analyzeAccessibility(theme)">
+                  <span class="material-icons">accessibility</span>
+                  Check Accessibility
+                </button>
+                <div class="divider"></div>
+                <button class="danger" (click)="deleteTheme(theme)">
+                  <span class="material-icons">delete</span>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Color Harmony Suggestions -->
+    <div class="themes-section" *ngIf="showSuggestions">
+      <h2 class="section-title">
+        <span class="material-icons">auto_awesome</span>
+        Suggested Color Harmonies
+      </h2>
+      <div class="harmony-grid">
+        <div
+          class="harmony-card"
+          *ngFor="let harmony of colorHarmonies"
+          (click)="applyHarmony(harmony)">
+          <div class="harmony-colors">
+            <div
+              class="harmony-color"
+              *ngFor="let color of harmony.colors"
+              [style.background-color]="color">
+            </div>
+          </div>
+          <span class="harmony-name">{{ harmony.name }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accessibility Report Modal -->
+  <div class="modal" *ngIf="showAccessibilityReport" (click)="closeAccessibilityReport()">
+    <div class="modal-content accessibility-report" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Accessibility Report</h2>
+        <button class="close-btn" (click)="closeAccessibilityReport()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="contrast-check" *ngFor="let check of contrastChecks">
+          <div class="check-preview">
+            <div
+              class="color-sample"
+              [style.background-color]="check.background"
+              [style.color]="check.foreground">
+              Sample Text
+            </div>
+          </div>
+          <div class="check-details">
+            <h4>{{ check.name }}</h4>
+            <div class="contrast-ratio">
+              <span class="ratio-value">{{ check.ratio }}</span>
+              <span class="ratio-label">Contrast Ratio</span>
+            </div>
+            <div class="wcag-badges">
+              <span class="badge" [class.pass]="check.passesAA" [class.fail]="!check.passesAA">
+                WCAG AA {{ check.passesAA ? '✓' : '✗' }}
+              </span>
+              <span class="badge" [class.pass]="check.passesAAA" [class.fail]="!check.passesAAA">
+                WCAG AAA {{ check.passesAAA ? '✓' : '✗' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

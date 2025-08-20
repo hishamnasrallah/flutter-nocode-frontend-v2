@@ -1,0 +1,587 @@
+<!-- src/app/features/themes/theme-editor/theme-editor.component.html -->
+
+<div class="theme-editor-container">
+  <!-- Header -->
+  <div class="editor-header">
+    <div class="header-left">
+      <button class="back-button" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <input
+        type="text"
+        class="theme-name-input"
+        [(ngModel)]="theme.name"
+        (blur)="updateThemeName()"
+        placeholder="Theme Name">
+    </div>
+    <div class="header-actions">
+      <button class="action-button" (click)="resetTheme()">
+        <span class="material-icons">refresh</span>
+        Reset
+      </button>
+      <button class="action-button" (click)="exportTheme()">
+        <span class="material-icons">file_download</span>
+        Export
+      </button>
+      <button
+        class="primary-button"
+        (click)="saveTheme()"
+        [disabled]="!hasChanges">
+        <span class="material-icons">save</span>
+        {{ hasChanges ? 'Save Changes' : 'Saved' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="editor-content">
+    <!-- Color Editor Panel -->
+    <div class="color-editor-panel">
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button
+          class="quick-action"
+          [class.active]="!theme.is_dark_mode"
+          (click)="toggleDarkMode(false)">
+          <span class="material-icons">light_mode</span>
+          Light Mode
+        </button>
+        <button
+          class="quick-action"
+          [class.active]="theme.is_dark_mode"
+          (click)="toggleDarkMode(true)">
+          <span class="material-icons">dark_mode</span>
+          Dark Mode
+        </button>
+        <button class="quick-action" (click)="autoGenerateColors()">
+          <span class="material-icons">auto_awesome</span>
+          Auto Generate
+        </button>
+        <button class="quick-action" (click)="openImagePicker()">
+          <span class="material-icons">image</span>
+          From Image
+        </button>
+      </div>
+
+      <!-- Color Sections -->
+      <div class="color-sections">
+        <!-- Primary Colors -->
+        <div class="color-section">
+          <h3 class="section-title">Primary Colors</h3>
+
+          <div class="color-field">
+            <label>Primary Color</label>
+            <div class="color-input-group">
+              <div
+                class="color-preview"
+                [style.background-color]="theme.primary_color"
+                (click)="openColorPicker('primary')">
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="theme.primary_color"
+                (blur)="onColorChange('primary')"
+                placeholder="#000000">
+              <button class="picker-btn" (click)="openColorPicker('primary')">
+                <span class="material-icons">palette</span>
+              </button>
+            </div>
+            <div class="color-shades">
+              <div
+                class="shade"
+                *ngFor="let shade of getPrimaryShades()"
+                [style.background-color]="shade"
+                (click)="theme.primary_color = shade; onColorChange('primary')">
+              </div>
+            </div>
+          </div>
+
+          <div class="color-field">
+            <label>Accent Color</label>
+            <div class="color-input-group">
+              <div
+                class="color-preview"
+                [style.background-color]="theme.accent_color"
+                (click)="openColorPicker('accent')">
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="theme.accent_color"
+                (blur)="onColorChange('accent')"
+                placeholder="#000000">
+              <button class="picker-btn" (click)="openColorPicker('accent')">
+                <span class="material-icons">palette</span>
+              </button>
+            </div>
+            <div class="color-shades">
+              <div
+                class="shade"
+                *ngFor="let shade of getAccentShades()"
+                [style.background-color]="shade"
+                (click)="theme.accent_color = shade; onColorChange('accent')">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Background & Surface -->
+        <div class="color-section">
+          <h3 class="section-title">Background & Surface</h3>
+
+          <div class="color-field">
+            <label>Background Color</label>
+            <div class="color-input-group">
+              <div
+                class="color-preview"
+                [style.background-color]="theme.background_color"
+                (click)="openColorPicker('background')">
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="theme.background_color"
+                (blur)="onColorChange('background')"
+                placeholder="#FFFFFF">
+              <button class="picker-btn" (click)="openColorPicker('background')">
+                <span class="material-icons">palette</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="color-field">
+            <label>Surface Color</label>
+            <div class="color-input-group">
+              <div
+                class="color-preview"
+                [style.background-color]="surfaceColor"
+                (click)="openColorPicker('surface')">
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="surfaceColor"
+                (blur)="onColorChange('surface')"
+                placeholder="#FFFFFF">
+              <button class="picker-btn" (click)="openColorPicker('surface')">
+                <span class="material-icons">palette</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Colors -->
+        <div class="color-section">
+          <h3 class="section-title">Text Colors</h3>
+
+          <div class="color-field">
+            <label>Primary Text</label>
+            <div class="color-input-group">
+              <div
+                class="color-preview"
+                [style.background-color]="theme.text_color"
+                (click)="openColorPicker('text')">
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="theme.text_color"
+                (blur)="onColorChange('text')"
+                placeholder="#000000">
+              <button class="picker-btn" (click)="openColorPicker('text')">
+                <span class="material-icons">palette</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="color-field">
+            <label>Secondary Text</label>
+            <div class="color-input-group">
+              <div
+                class="color-preview"
+                [style.background-color]="secondaryTextColor"
+                (click)="openColorPicker('secondaryText')">
+              </div>
+              <input
+                type="text"
+                [(ngModel)]="secondaryTextColor"
+                (blur)="onColorChange('secondaryText')"
+                placeholder="#757575">
+              <button class="picker-btn" (click)="openColorPicker('secondaryText')">
+                <span class="material-icons">palette</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Colors -->
+        <div class="color-section">
+          <h3 class="section-title">Status Colors</h3>
+
+          <div class="color-field-row">
+            <div class="color-field compact">
+              <label>Success</label>
+              <div class="color-input-group">
+                <div
+                  class="color-preview small"
+                  [style.background-color]="successColor"
+                  (click)="openColorPicker('success')">
+                </div>
+                <input
+                  type="text"
+                  [(ngModel)]="successColor"
+                  (blur)="onColorChange('success')">
+              </div>
+            </div>
+
+            <div class="color-field compact">
+              <label>Warning</label>
+              <div class="color-input-group">
+                <div
+                  class="color-preview small"
+                  [style.background-color]="warningColor"
+                  (click)="openColorPicker('warning')">
+                </div>
+                <input
+                  type="text"
+                  [(ngModel)]="warningColor"
+                  (blur)="onColorChange('warning')">
+              </div>
+            </div>
+
+            <div class="color-field compact">
+              <label>Error</label>
+              <div class="color-input-group">
+                <div
+                  class="color-preview small"
+                  [style.background-color]="errorColor"
+                  (click)="openColorPicker('error')">
+                </div>
+                <input
+                  type="text"
+                  [(ngModel)]="errorColor"
+                  (blur)="onColorChange('error')">
+              </div>
+            </div>
+
+            <div class="color-field compact">
+              <label>Info</label>
+              <div class="color-input-group">
+                <div
+                  class="color-preview small"
+                  [style.background-color]="infoColor"
+                  (click)="openColorPicker('info')">
+                </div>
+                <input
+                  type="text"
+                  [(ngModel)]="infoColor"
+                  (blur)="onColorChange('info')">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="color-section">
+          <h3 class="section-title">Typography</h3>
+
+          <div class="font-field">
+            <label>Font Family</label>
+            <select [(ngModel)]="theme.font_family" (change)="onFontChange()">
+              <option value="Roboto">Roboto</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Lato">Lato</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Raleway">Raleway</option>
+              <option value="Inter">Inter</option>
+              <option value="Nunito">Nunito</option>
+              <option value="SF Pro Display">SF Pro Display</option>
+              <option value="system-ui">System Default</option>
+            </select>
+          </div>
+
+          <div class="font-sizes">
+            <div class="size-field">
+              <label>Base Size</label>
+              <input type="number" [(ngModel)]="baseFontSize" min="12" max="20">
+            </div>
+            <div class="size-field">
+              <label>Scale</label>
+              <select [(ngModel)]="fontScale">
+                <option value="1.125">Minor Second</option>
+                <option value="1.200">Major Second</option>
+                <option value="1.250">Major Third</option>
+                <option value="1.333">Perfect Fourth</option>
+                <option value="1.414">Augmented Fourth</option>
+                <option value="1.500">Perfect Fifth</option>
+                <option value="1.618">Golden Ratio</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Material Palette -->
+        <div class="color-section">
+          <h3 class="section-title">Material Design Colors</h3>
+          <div class="material-palette">
+            <div
+              class="material-color"
+              *ngFor="let color of materialColors"
+              [style.background-color]="color.value"
+              [title]="color.name"
+              (click)="applyMaterialColor(color)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accessibility Checker -->
+      <div class="accessibility-checker">
+        <h3 class="section-title">
+          <span class="material-icons">accessibility</span>
+          Accessibility Check
+        </h3>
+        <div class="contrast-checks">
+          <div
+            class="contrast-item"
+            *ngFor="let check of contrastChecks"
+            [class.pass]="check.passes"
+            [class.warning]="check.warning"
+            [class.fail]="!check.passes && !check.warning">
+            <div class="contrast-preview">
+              <div
+                class="sample"
+                [style.background-color]="check.background"
+                [style.color]="check.foreground">
+                Aa
+              </div>
+            </div>
+            <div class="contrast-info">
+              <span class="check-name">{{ check.name }}</span>
+              <span class="ratio">{{ check.ratio }}</span>
+              <span class="status-icon material-icons">
+                {{ check.passes ? 'check_circle' : check.warning ? 'warning' : 'error' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Preview Panel -->
+    <div class="preview-panel">
+      <div class="preview-header">
+        <h3>Live Preview</h3>
+        <div class="preview-controls">
+          <button
+            class="preview-btn"
+            [class.active]="previewMode === 'phone'"
+            (click)="previewMode = 'phone'">
+            <span class="material-icons">phone_iphone</span>
+          </button>
+          <button
+            class="preview-btn"
+            [class.active]="previewMode === 'tablet'"
+            (click)="previewMode = 'tablet'">
+            <span class="material-icons">tablet</span>
+          </button>
+          <button
+            class="preview-btn"
+            [class.active]="previewMode === 'components'"
+            (click)="previewMode = 'components'">
+            <span class="material-icons">widgets</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Phone Preview -->
+      <div class="phone-preview" *ngIf="previewMode === 'phone'">
+        <div class="phone-frame">
+          <div class="phone-screen" [style.background-color]="theme.background_color">
+            <!-- Status Bar -->
+            <div class="status-bar" [style.background-color]="theme.primary_color">
+              <span [style.color]="getContrastColor(theme.primary_color)">9:41 AM</span>
+              <div class="status-icons">
+                <span class="material-icons" [style.color]="getContrastColor(theme.primary_color)">signal_cellular_4_bar</span>
+                <span class="material-icons" [style.color]="getContrastColor(theme.primary_color)">wifi</span>
+                <span class="material-icons" [style.color]="getContrastColor(theme.primary_color)">battery_full</span>
+              </div>
+            </div>
+
+            <!-- App Bar -->
+            <div class="app-bar" [style.background-color]="theme.primary_color">
+              <span class="material-icons" [style.color]="getContrastColor(theme.primary_color)">menu</span>
+              <span class="app-title" [style.color]="getContrastColor(theme.primary_color)" [style.font-family]="theme.font_family">
+                My App
+              </span>
+              <span class="material-icons" [style.color]="getContrastColor(theme.primary_color)">more_vert</span>
+            </div>
+
+            <!-- Content -->
+            <div class="app-content">
+              <div class="card" [style.background-color]="surfaceColor">
+                <h2 [style.color]="theme.text_color" [style.font-family]="theme.font_family">
+                  Welcome to Flutter
+                </h2>
+                <p [style.color]="secondaryTextColor" [style.font-family]="theme.font_family">
+                  Build beautiful native apps with a single codebase
+                </p>
+              </div>
+
+              <div class="button-group">
+                <button class="elevated-button" [style.background-color]="theme.primary_color">
+                  <span [style.color]="getContrastColor(theme.primary_color)" [style.font-family]="theme.font_family">
+                    PRIMARY
+                  </span>
+                </button>
+                <button class="elevated-button" [style.background-color]="theme.accent_color">
+                  <span [style.color]="getContrastColor(theme.accent_color)" [style.font-family]="theme.font_family">
+                    ACCENT
+                  </span>
+                </button>
+              </div>
+
+              <div class="list-items">
+                <div class="list-item" [style.border-color]="theme.is_dark_mode ? '#444' : '#e0e0e0'">
+                  <span class="material-icons" [style.color]="theme.primary_color">folder</span>
+                  <div class="list-text">
+                    <span [style.color]="theme.text_color" [style.font-family]="theme.font_family">Documents</span>
+                    <span [style.color]="secondaryTextColor" [style.font-family]="theme.font_family">12 items</span>
+                  </div>
+                  <span class="material-icons" [style.color]="secondaryTextColor">chevron_right</span>
+                </div>
+                <div class="list-item" [style.border-color]="theme.is_dark_mode ? '#444' : '#e0e0e0'">
+                  <span class="material-icons" [style.color]="theme.primary_color">image</span>
+                  <div class="list-text">
+                    <span [style.color]="theme.text_color" [style.font-family]="theme.font_family">Photos</span>
+                    <span [style.color]="secondaryTextColor" [style.font-family]="theme.font_family">248 items</span>
+                  </div>
+                  <span class="material-icons" [style.color]="secondaryTextColor">chevron_right</span>
+                </div>
+              </div>
+
+              <!-- Status Colors Preview -->
+              <div class="status-preview">
+                <div class="status-chip success" [style.background-color]="successColor">
+                  <span [style.color]="getContrastColor(successColor)">Success</span>
+                </div>
+                <div class="status-chip warning" [style.background-color]="warningColor">
+                  <span [style.color]="getContrastColor(warningColor)">Warning</span>
+                </div>
+                <div class="status-chip error" [style.background-color]="errorColor">
+                  <span [style.color]="getContrastColor(errorColor)">Error</span>
+                </div>
+                <div class="status-chip info" [style.background-color]="infoColor">
+                  <span [style.color]="getContrastColor(infoColor)">Info</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav" [style.background-color]="surfaceColor" [style.border-color]="theme.is_dark_mode ? '#444' : '#e0e0e0'">
+              <div class="nav-item active">
+                <span class="material-icons" [style.color]="theme.primary_color">home</span>
+                <span [style.color]="theme.primary_color" [style.font-family]="theme.font_family">Home</span>
+              </div>
+              <div class="nav-item">
+                <span class="material-icons" [style.color]="secondaryTextColor">explore</span>
+                <span [style.color]="secondaryTextColor" [style.font-family]="theme.font_family">Explore</span>
+              </div>
+              <div class="nav-item">
+                <span class="material-icons" [style.color]="secondaryTextColor">notifications</span>
+                <span [style.color]="secondaryTextColor" [style.font-family]="theme.font_family">Alerts</span>
+              </div>
+              <div class="nav-item">
+                <span class="material-icons" [style.color]="secondaryTextColor">person</span>
+                <span [style.color]="secondaryTextColor" [style.font-family]="theme.font_family">Profile</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Components Preview -->
+      <div class="components-preview" *ngIf="previewMode === 'components'" [style.background-color]="theme.background_color">
+        <div class="component-group">
+          <h4 [style.color]="theme.text_color">Buttons</h4>
+          <div class="component-row">
+            <button class="preview-button elevated" [style.background-color]="theme.primary_color">
+              <span [style.color]="getContrastColor(theme.primary_color)">Elevated</span>
+            </button>
+            <button class="preview-button outlined" [style.border-color]="theme.primary_color">
+              <span [style.color]="theme.primary_color">Outlined</span>
+            </button>
+            <button class="preview-button text">
+              <span [style.color]="theme.primary_color">Text</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <h4 [style.color]="theme.text_color">Form Elements</h4>
+          <input
+            type="text"
+            class="preview-input"
+            placeholder="Text input"
+            [style.color]="theme.text_color"
+            [style.border-color]="theme.primary_color">
+          <div class="checkbox-group">
+            <label [style.color]="theme.text_color">
+              <input type="checkbox" checked>
+              <span>Checkbox option</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <h4 [style.color]="theme.text_color">Cards</h4>
+          <div class="preview-card" [style.background-color]="surfaceColor">
+            <h5 [style.color]="theme.text_color">Card Title</h5>
+            <p [style.color]="secondaryTextColor">Card content goes here with secondary text color.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Color Picker Modal -->
+  <div class="color-picker-modal" *ngIf="showColorPicker" (click)="closeColorPicker()">
+    <div class="picker-content" (click)="$event.stopPropagation()">
+      <div class="picker-header">
+        <h3>Choose Color</h3>
+        <button class="close-btn" (click)="closeColorPicker()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="picker-body">
+        <input
+          type="color"
+          [(ngModel)]="tempColor"
+          (change)="onTempColorChange()">
+        <div class="hex-input">
+          <input
+            type="text"
+            [(ngModel)]="tempColor"
+            placeholder="#000000">
+        </div>
+        <div class="preset-colors">
+          <div
+            class="preset-color"
+            *ngFor="let color of presetColors"
+            [style.background-color]="color"
+            (click)="selectPresetColor(color)">
+          </div>
+        </div>
+      </div>
+      <div class="picker-footer">
+        <button class="cancel-btn" (click)="closeColorPicker()">Cancel</button>
+        <button class="apply-btn" (click)="applyColor()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Image Color Picker -->
+  <input
+    type="file"
+    #imageInput
+    accept="image/*"
+    (change)="extractColorsFromImage($event)"
+    style="display: none">
+</div>
