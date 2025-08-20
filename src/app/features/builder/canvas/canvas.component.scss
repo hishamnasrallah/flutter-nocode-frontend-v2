@@ -1,0 +1,185 @@
+// src/app/features/builder/canvas/canvas.component.scss
+
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  background: #f0f2f5;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.canvas-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+.device-screen {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: white;
+
+  &.drag-over {
+    background: rgba(102, 126, 234, 0.05);
+  }
+}
+
+.app-bar {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 16px;
+  background: #667eea;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  .back-button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 8px;
+    margin-right: 8px;
+    margin-left: -8px;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .material-icons {
+      font-size: 24px;
+    }
+  }
+
+  .app-bar-title {
+    flex: 1;
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .app-bar-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+.widgets-container {
+  min-height: calc(100% - 56px);
+  padding: 16px;
+  position: relative;
+}
+
+.empty-canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #999;
+  pointer-events: none;
+
+  .empty-icon {
+    .material-icons {
+      font-size: 64px;
+      color: #d0d0d0;
+    }
+  }
+
+  p {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+}
+
+.drop-indicator {
+  pointer-events: none;
+  transition: all 0.2s ease;
+
+  &.horizontal {
+    height: 2px !important;
+    background: #2196F3 !important;
+  }
+
+  &.vertical {
+    width: 2px !important;
+    background: #2196F3 !important;
+  }
+}
+
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 10000;
+  padding: 8px 16px;
+  background: white;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.9;
+
+  .material-icons {
+    font-size: 20px;
+    color: #667eea;
+  }
+
+  span:not(.material-icons) {
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+  }
+}
+
+// Widget hover and selection styles
+:host ::ng-deep {
+  .widget-container {
+    position: relative;
+    transition: all 0.2s;
+
+    &.selected {
+      outline: 2px solid #2196F3 !important;
+      outline-offset: 2px;
+    }
+
+    &.hovered {
+      outline: 1px dashed #999;
+      outline-offset: 2px;
+    }
+
+    &.dragging {
+      opacity: 0.5;
+    }
+
+    &.drag-over {
+      background: rgba(102, 126, 234, 0.1);
+      border: 2px dashed #667eea;
+    }
+  }
+}

@@ -1,0 +1,50 @@
+<!-- src/app/app.component.html -->
+
+<div class="app-container">
+  <!-- Global Loading Indicator -->
+  <div class="global-loading" *ngIf="loading$ | async">
+    <div class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
+  </div>
+
+  <!-- Main Router Outlet -->
+  <router-outlet></router-outlet>
+
+  <!-- Global Notifications Container -->
+  <div class="notifications-container">
+    <div
+      *ngFor="let notification of notifications"
+      class="notification"
+      [ngClass]="getNotificationClass(notification.type)"
+      [@slideIn]>
+
+      <div class="notification-content">
+        <span class="notification-icon material-icons">
+          {{ getNotificationIcon(notification.type) }}
+        </span>
+
+        <div class="notification-text">
+          <div class="notification-title" *ngIf="notification.title">
+            {{ notification.title }}
+          </div>
+          <div class="notification-message">
+            {{ notification.message }}
+          </div>
+        </div>
+
+        <button
+          class="notification-close"
+          (click)="removeNotification(notification.id)">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="notification-action" *ngIf="notification.action">
+        <button (click)="notification.action.callback()">
+          {{ notification.action.label }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

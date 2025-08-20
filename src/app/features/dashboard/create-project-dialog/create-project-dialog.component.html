@@ -1,0 +1,103 @@
+<!-- src/app/features/dashboard/create-project-dialog/create-project-dialog.component.html -->
+
+<div class="dialog-overlay" (click)="onClose()">
+  <div class="dialog-container" (click)="$event.stopPropagation()">
+    <div class="dialog-header">
+      <h2>Create New Project</h2>
+      <button class="close-btn" (click)="onClose()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <div class="dialog-body">
+      <form [formGroup]="projectForm">
+        <!-- Templates -->
+        <div class="form-section">
+          <label class="section-label">Choose a Template</label>
+          <div class="templates-grid">
+            <div
+              class="template-option"
+              *ngFor="let template of templates"
+              [class.selected]="template.selected"
+              (click)="selectTemplate(template.id)">
+              <span class="material-icons">{{ template.icon }}</span>
+              <span class="template-name">{{ template.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Name -->
+        <div class="form-group">
+          <label for="projectName">Project Name *</label>
+          <input
+            type="text"
+            id="projectName"
+            formControlName="name"
+            placeholder="My Awesome App"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('name')">
+          <div class="field-error" *ngIf="isFieldInvalid('name')">
+            {{ getFieldError('name') }}
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            placeholder="Brief description of your app (optional)"
+            rows="3"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('description')">
+          </textarea>
+          <div class="field-hint">
+            {{ projectForm.get('description')?.value?.length || 0 }}/200 characters
+          </div>
+          <div class="field-error" *ngIf="isFieldInvalid('description')">
+            {{ getFieldError('description') }}
+          </div>
+        </div>
+
+        <!-- Package Name -->
+        <div class="form-group">
+          <label for="packageName">Package Name *</label>
+          <input
+            type="text"
+            id="packageName"
+            formControlName="package_name"
+            placeholder="com.example.myapp"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('package_name')">
+          <div class="field-hint">
+            Unique identifier for your app (e.g., com.company.appname)
+          </div>
+          <div class="field-error" *ngIf="isFieldInvalid('package_name')">
+            {{ getFieldError('package_name') }}
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="dialog-footer">
+      <button
+        class="btn btn-secondary"
+        (click)="onClose()"
+        [disabled]="isCreating">
+        Cancel
+      </button>
+
+      <button
+        class="btn btn-primary"
+        (click)="onCreate()"
+        [disabled]="isCreating || projectForm.invalid">
+        <span class="spinner" *ngIf="isCreating"></span>
+        <span *ngIf="!isCreating">
+          <span class="material-icons">add</span>
+          Create Project
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

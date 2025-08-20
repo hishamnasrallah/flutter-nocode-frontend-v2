@@ -1,0 +1,85 @@
+<!-- src/app/features/builder/canvas/canvas.component.html -->
+
+<div
+  class="canvas-container"
+  #canvasContainer
+  (click)="onCanvasClick($event)"
+  (keydown)="onKeyDown($event)"
+  tabindex="0">
+
+  <!-- Grid Background -->
+  <div class="canvas-grid" *ngIf="canvasService.canvasState.gridEnabled"></div>
+
+  <!-- Device Frame -->
+  <app-device-frame
+    [deviceType]="deviceType"
+    [zoom]="zoom">
+
+    <!-- Screen Content -->
+    <div
+      class="device-screen"
+      [style.backgroundColor]="screen?.background_color || '#FFFFFF'"
+      appDroppable
+      [parentWidgetId]="null"
+      [dropEnabled]="true"
+      (dropped)="onCanvasDrop($event)">
+
+      <!-- App Bar (if enabled) -->
+      <div class="app-bar" *ngIf="screen?.show_app_bar">
+        <button class="back-button" *ngIf="screen?.show_back_button">
+          <span class="material-icons">arrow_back</span>
+        </button>
+        <h3 class="app-bar-title">{{ screen?.app_bar_title || 'App' }}</h3>
+        <div class="app-bar-actions">
+          <!-- App bar actions can be added here -->
+        </div>
+      </div>
+
+      <!-- Widgets Container -->
+      <div class="widgets-container">
+        <!-- Empty State -->
+        <div class="empty-canvas" *ngIf="widgets.length === 0 && !isDragging">
+          <div class="empty-icon">
+            <span class="material-icons">widgets</span>
+          </div>
+          <p>Drag widgets here to start building</p>
+        </div>
+
+        <!-- Render Widget Tree -->
+        <ng-container *ngFor="let widget of widgetTree; trackBy: trackByWidgetId">
+          <app-widget-renderer
+            [widget]="widget"
+            [isSelected]="isWidgetSelected(widget)"
+            [isHovered]="isWidgetHovered(widget)"
+            [zoom]="zoom"
+            (click)="onWidgetClick(widget, $event)"
+            (mouseenter)="onWidgetHover(widget)"
+            (mouseleave)="onWidgetHover(null)"
+            (widgetDeleted)="onWidgetDelete($event)"
+            appDraggable
+            [dragType]="'existing-widget'"
+            [widget]="widget"
+            appDroppable
+            [parentWidgetId]="widget.id"
+            [parentWidgetType]="widget.widget_type"
+            [dropEnabled]="true"
+            (dropped)="onCanvasDrop($event)">
+          </app-widget-renderer>
+        </ng-container>
+      </div>
+
+      <!-- Drop Indicator -->
+      <div
+        class="drop-indicator"
+        *ngIf="dropIndicatorStyle"
+        [ngStyle]="dropIndicatorStyle">
+      </div>
+    </div>
+  </app-device-frame>
+
+  <!-- Drag Ghost (for visual feedback) -->
+  <div class="drag-ghost" *ngIf="isDragging">
+    <span class="material-icons">widgets</span>
+    <span>{{ dragDropService.dragData?.widgetType || 'Widget' }}</span>
+  </div>
+</div>

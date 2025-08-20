@@ -1,0 +1,87 @@
+// src/app/features/auth/register/register.component.scss
+
+@import '../login/login.component.scss';
+
+// Additional styles specific to register
+.auth-card-register {
+  max-width: 480px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+
+  .form-group {
+    flex: 1;
+  }
+}
+
+.password-strength {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .strength-bar {
+    flex: 1;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+
+    .strength-fill {
+      height: 100%;
+      transition: width 0.3s, background-color 0.3s;
+
+      &.weak {
+        background: #f44336;
+      }
+
+      &.medium {
+        background: #ff9800;
+      }
+
+      &.strong {
+        background: #4caf50;
+      }
+    }
+  }
+
+  .strength-text {
+    font-size: 12px;
+    font-weight: 500;
+
+    &.weak {
+      color: #f44336;
+    }
+
+    &.medium {
+      color: #ff9800;
+    }
+
+    &.strong {
+      color: #4caf50;
+    }
+  }
+}
+
+.checkbox-text {
+  font-size: 13px;
+
+  a {
+    color: #667eea;
+    text-decoration: underline;
+
+    &:hover {
+      color: #764ba2;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}

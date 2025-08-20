@@ -1,0 +1,161 @@
+<!-- src/app/features/builder/builder/builder.component.html -->
+
+<div class="builder-container">
+  <!-- Toolbar -->
+  <app-toolbar
+    [application]="application"
+    (save)="onSave()"
+    (preview)="onPreview()"
+    (build)="onBuild()"
+    (undo)="onUndo()"
+    (redo)="onRedo()"
+    (zoomChange)="onZoomChange($event)"
+    (deviceChange)="onDeviceChange($event)"
+    (back)="goBack()">
+  </app-toolbar>
+
+  <!-- Main Builder Area -->
+  <div class="builder-content">
+    <!-- Left Panel -->
+    <div class="left-panel">
+      <!-- Panel Tabs -->
+      <div class="panel-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="leftPanelTab === 'widgets'"
+          (click)="toggleLeftPanelTab('widgets')">
+          <span class="material-icons">widgets</span>
+          <span>Widgets</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="leftPanelTab === 'tree'"
+          (click)="toggleLeftPanelTab('tree')">
+          <span class="material-icons">account_tree</span>
+          <span>Tree</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="leftPanelTab === 'screens'"
+          (click)="toggleLeftPanelTab('screens')">
+          <span class="material-icons">view_carousel</span>
+          <span>Screens</span>
+        </button>
+      </div>
+
+      <!-- Panel Content -->
+      <div class="panel-content">
+        <!-- Widgets Panel -->
+        <app-widget-panel
+          *ngIf="leftPanelTab === 'widgets'"
+          class="panel-section">
+        </app-widget-panel>
+
+        <!-- Widget Tree -->
+        <app-widget-tree
+          *ngIf="leftPanelTab === 'tree'"
+          [widgets]="widgets"
+          [selectedWidget]="selectedWidget"
+          (widgetSelected)="onWidgetSelected($event)"
+          (widgetDeleted)="onWidgetDeleted($event)"
+          class="panel-section">
+        </app-widget-tree>
+
+        <!-- Screen Manager -->
+        <app-screen-manager
+          *ngIf="leftPanelTab === 'screens'"
+          [application]="application"
+          [currentScreen]="currentScreen"
+          class="panel-section">
+        </app-screen-manager>
+      </div>
+    </div>
+
+    <!-- Canvas Area -->
+    <div class="canvas-area">
+      <!-- Loading State -->
+      <div class="loading-overlay" *ngIf="isLoading">
+        <div class="spinner-large"></div>
+        <p>Loading project...</p>
+      </div>
+
+      <!-- Canvas -->
+      <app-canvas
+        *ngIf="!isLoading"
+        [screen]="currentScreen"
+        [widgets]="widgets"
+        [selectedWidget]="selectedWidget"
+        [deviceType]="deviceType"
+        [zoom]="zoom"
+        (widgetDropped)="onWidgetDropped($event)"
+        (widgetSelected)="onWidgetSelected($event)"
+        (widgetDeleted)="onWidgetDeleted($event)">
+      </app-canvas>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="right-panel">
+      <!-- Panel Tabs -->
+      <div class="panel-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="rightPanelTab === 'properties'"
+          (click)="toggleRightPanelTab('properties')">
+          <span class="material-icons">tune</span>
+          <span>Properties</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="rightPanelTab === 'actions'"
+          (click)="toggleRightPanelTab('actions')">
+          <span class="material-icons">bolt</span>
+          <span>Actions</span>
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="rightPanelTab === 'data'"
+          (click)="toggleRightPanelTab('data')">
+          <span class="material-icons">storage</span>
+          <span>Data</span>
+        </button>
+      </div>
+
+      <!-- Panel Content -->
+      <div class="panel-content">
+        <!-- Properties Panel -->
+        <app-properties-panel
+          *ngIf="rightPanelTab === 'properties'"
+          [widget]="selectedWidget"
+          class="panel-section">
+        </app-properties-panel>
+
+        <!-- Actions Panel -->
+        <div *ngIf="rightPanelTab === 'actions'" class="panel-section">
+          <div class="empty-state">
+            <span class="material-icons">bolt</span>
+            <p>Actions</p>
+            <small>Configure widget actions and interactions</small>
+          </div>
+        </div>
+
+        <!-- Data Panel -->
+        <div *ngIf="rightPanelTab === 'data'" class="panel-section">
+          <div class="empty-state">
+            <span class="material-icons">storage</span>
+            <p>Data Sources</p>
+            <small>Connect to APIs and manage data</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
+  <app-preview
+    *ngIf="showPreview"
+    [application]="application"
+    [screen]="currentScreen"
+    [widgets]="widgets"
+    (close)="onClosePreview()">
+  </app-preview>
+</div>

@@ -1,0 +1,67 @@
+<!-- src/app/features/dashboard/project-card/project-card.component.html -->
+
+<div class="project-card" [class.list-view]="viewMode === 'list'" (click)="onOpen()">
+  <!-- Thumbnail -->
+  <div class="card-thumbnail" [style.background-color]="getThumbnailColor()">
+    <span class="thumbnail-initials">{{ getInitials() }}</span>
+    <div class="build-status" [ngClass]="getBuildStatusClass()">
+      <span class="material-icons">{{ getBuildStatusIcon() }}</span>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="card-content">
+    <div class="card-header">
+      <h3 class="card-title">{{ application.name }}</h3>
+      <button class="menu-btn" (click)="toggleMenu($event)">
+        <span class="material-icons">more_vert</span>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div class="dropdown-menu" *ngIf="showMenu" (click)="$event.stopPropagation()">
+        <button class="menu-item" (click)="onOpen()">
+          <span class="material-icons">edit</span>
+          Open in Builder
+        </button>
+        <button class="menu-item" (click)="onClone()">
+          <span class="material-icons">content_copy</span>
+          Clone Project
+        </button>
+        <div class="menu-divider"></div>
+        <button class="menu-item danger" (click)="onDelete()">
+          <span class="material-icons">delete</span>
+          Delete Project
+        </button>
+      </div>
+    </div>
+
+    <p class="card-description">{{ application.description || 'No description' }}</p>
+
+    <div class="card-meta">
+      <div class="meta-item">
+        <span class="material-icons">code</span>
+        <span>{{ application.package_name }}</span>
+      </div>
+
+      <div class="meta-item">
+        <span class="material-icons">update</span>
+        <span>{{ getFormattedDate(application.updated_at) }}</span>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="build-info">
+        <span class="build-status-text" [ngClass]="getBuildStatusClass()">
+          {{ getBuildStatusText() }}
+        </span>
+      </div>
+
+      <div class="card-actions">
+        <button class="action-btn primary" (click)="onOpen()">
+          <span class="material-icons">edit</span>
+          <span class="btn-text">Open</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

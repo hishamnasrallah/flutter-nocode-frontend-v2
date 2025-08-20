@@ -1,0 +1,210 @@
+<!-- src/app/features/dashboard/dashboard/dashboard.component.html -->
+
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="material-icons">flutter_dash</span>
+        <span class="logo-text">Flutter Builder</span>
+      </div>
+    </div>
+
+    <div class="header-center">
+      <div class="search-bar">
+        <span class="material-icons">search</span>
+        <input
+          type="text"
+          placeholder="Search projects..."
+          [(ngModel)]="searchQuery"
+          (ngModelChange)="onSearchChange()">
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="icon-btn">
+        <span class="material-icons">notifications</span>
+      </button>
+
+      <button class="icon-btn">
+        <span class="material-icons">help_outline</span>
+      </button>
+
+      <div class="user-menu">
+        <button class="user-avatar">
+          {{ getUserInitials() }}
+        </button>
+        <div class="user-dropdown">
+          <div class="user-info">
+            <div class="user-name">{{ getUserDisplayName() }}</div>
+            <div class="user-email">{{ currentUser?.email }}</div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a routerLink="/profile" class="dropdown-item">
+            <span class="material-icons">person</span>
+            Profile
+          </a>
+          <a routerLink="/settings" class="dropdown-item">
+            <span class="material-icons">settings</span>
+            Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item" (click)="logout()">
+            <span class="material-icons">logout</span>
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <!-- Welcome Section -->
+    <section class="welcome-section">
+      <div class="welcome-content">
+        <h1>Welcome back, {{ getUserDisplayName() }}!</h1>
+        <p>Build amazing Flutter apps with our visual builder</p>
+      </div>
+
+      <button class="btn btn-primary" (click)="openCreateDialog()">
+        <span class="material-icons">add</span>
+        New Project
+      </button>
+    </section>
+
+    <!-- Stats Cards -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon blue">
+          <span class="material-icons">apps</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalApps }}</div>
+          <div class="stat-label">Total Apps</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange">
+          <span class="material-icons">build_circle</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.activeBuilds }}</div>
+          <div class="stat-label">Active Builds</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon green">
+          <span class="material-icons">check_circle</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.successfulBuilds }}</div>
+          <div class="stat-label">Successful</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon red">
+          <span class="material-icons">error</span>
+        </div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.failedBuilds }}</div>
+          <div class="stat-label">Failed</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Templates Section -->
+    <section class="templates-section">
+      <div class="section-header">
+        <h2>Start with a Template</h2>
+        <p>Choose a template to kickstart your project</p>
+      </div>
+
+      <div class="templates-grid">
+        <div
+          class="template-card"
+          *ngFor="let template of templates"
+          (click)="createFromTemplate(template.id)">
+          <div class="template-icon" [style.background-color]="template.color">
+            <span class="material-icons">{{ template.icon }}</span>
+          </div>
+          <div class="template-name">{{ template.name }}</div>
+          <div class="template-description">{{ template.description }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section class="projects-section">
+      <div class="section-header">
+        <h2>Your Projects</h2>
+        <div class="section-controls">
+          <select [(ngModel)]="sortBy" (ngModelChange)="onSortChange()">
+            <option value="updated">Last Updated</option>
+            <option value="created">Date Created</option>
+            <option value="name">Name</option>
+          </select>
+
+          <div class="view-toggle">
+            <button
+              class="view-btn"
+              [class.active]="viewMode === 'grid'"
+              (click)="viewMode = 'grid'">
+              <span class="material-icons">grid_view</span>
+            </button>
+            <button
+              class="view-btn"
+              [class.active]="viewMode === 'list'"
+              (click)="viewMode = 'list'">
+              <span class="material-icons">view_list</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" *ngIf="isLoading">
+        <div class="spinner-large"></div>
+        <p>Loading your projects...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" *ngIf="!isLoading && filteredApplications.length === 0">
+        <div class="empty-icon">
+          <span class="material-icons">folder_open</span>
+        </div>
+        <h3>No projects yet</h3>
+        <p>Create your first Flutter app to get started</p>
+        <button class="btn btn-primary" (click)="openCreateDialog()">
+          <span class="material-icons">add</span>
+          Create First Project
+        </button>
+      </div>
+
+      <!-- Projects Grid/List -->
+      <div
+        class="projects-grid"
+        [class.list-view]="viewMode === 'list'"
+        *ngIf="!isLoading && filteredApplications.length > 0">
+        <app-project-card
+          *ngFor="let app of filteredApplications"
+          [application]="app"
+          [viewMode]="viewMode"
+          (open)="onProjectOpen($event)"
+          (clone)="onProjectClone($event)"
+          (delete)="onProjectDelete($event)">
+        </app-project-card>
+      </div>
+    </section>
+  </main>
+
+  <!-- Create Project Dialog -->
+  <app-create-project-dialog
+    *ngIf="showCreateDialog"
+    (close)="closeCreateDialog()"
+    (created)="onProjectCreated($event)">
+  </app-create-project-dialog>
+</div>

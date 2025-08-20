@@ -1,0 +1,197 @@
+<!-- src/app/features/auth/register/register.component.html -->
+
+<div class="auth-container">
+  <div class="auth-card auth-card-register">
+    <div class="auth-header">
+      <div class="logo">
+        <span class="material-icons">flutter_dash</span>
+      </div>
+      <h1>Create Account</h1>
+      <p>Start building Flutter apps visually</p>
+    </div>
+
+    <div class="auth-body">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <!-- Username Field -->
+        <div class="form-group">
+          <label for="username">Username *</label>
+          <div class="input-wrapper">
+            <span class="input-icon material-icons">person</span>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              placeholder="Choose a username"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('username')"
+              autocomplete="username">
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('username')">
+            {{ getFieldError('username') }}
+          </div>
+        </div>
+
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="email">Email Address *</label>
+          <div class="input-wrapper">
+            <span class="input-icon material-icons">email</span>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              placeholder="Enter your email"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('email')"
+              autocomplete="email">
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('email')">
+            {{ getFieldError('email') }}
+          </div>
+        </div>
+
+        <!-- Name Fields (Row) -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="first_name">First Name</label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="first_name"
+                formControlName="first_name"
+                placeholder="First name"
+                class="form-control"
+                autocomplete="given-name">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="last_name">Last Name</label>
+            <div class="input-wrapper">
+              <input
+                type="text"
+                id="last_name"
+                formControlName="last_name"
+                placeholder="Last name"
+                class="form-control"
+                autocomplete="family-name">
+            </div>
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <div class="input-wrapper">
+            <span class="input-icon material-icons">lock</span>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Create a password"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('password')"
+              autocomplete="new-password">
+            <button
+              type="button"
+              class="input-action"
+              (click)="togglePasswordVisibility()"
+              tabindex="-1">
+              <span class="material-icons">
+                {{ showPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('password')">
+            {{ getFieldError('password') }}
+          </div>
+
+          <!-- Password Strength Indicator -->
+          <div class="password-strength" *ngIf="registerForm.get('password')?.value">
+            <div class="strength-bar">
+              <div
+                class="strength-fill"
+                [style.width.%]="passwordStrength"
+                [ngClass]="getPasswordStrengthClass()">
+              </div>
+            </div>
+            <span class="strength-text" [ngClass]="getPasswordStrengthClass()">
+              {{ getPasswordStrengthText() }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password *</label>
+          <div class="input-wrapper">
+            <span class="input-icon material-icons">lock_outline</span>
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              placeholder="Confirm your password"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('confirmPassword')"
+              autocomplete="new-password">
+            <button
+              type="button"
+              class="input-action"
+              (click)="toggleConfirmPasswordVisibility()"
+              tabindex="-1">
+              <span class="material-icons">
+                {{ showConfirmPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('confirmPassword')">
+            {{ getFieldError('confirmPassword') }}
+          </div>
+        </div>
+
+        <!-- Terms and Conditions -->
+        <div class="form-group">
+          <label class="checkbox-wrapper">
+            <input
+              type="checkbox"
+              [(ngModel)]="acceptTerms"
+              [ngModelOptions]="{standalone: true}">
+            <span class="checkmark"></span>
+            <span class="checkbox-text">
+              I agree to the <a href="#" target="_blank">Terms of Service</a>
+              and <a href="#" target="_blank">Privacy Policy</a>
+            </span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="isLoading || registerForm.invalid || !acceptTerms">
+          <span class="spinner" *ngIf="isLoading"></span>
+          <span *ngIf="!isLoading">
+            <span class="material-icons">person_add</span>
+            Create Account
+          </span>
+        </button>
+      </form>
+
+      <!-- Sign In Link -->
+      <div class="auth-footer">
+        <p>
+          Already have an account?
+          <a routerLink="/login">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Decoration -->
+  <div class="auth-background">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+</div>

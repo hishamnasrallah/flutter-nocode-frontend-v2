@@ -1,0 +1,72 @@
+<!-- src/app/features/builder/widget-panel/widget-panel.component.html -->
+
+<div class="widget-panel">
+  <!-- Search Bar -->
+  <div class="panel-search">
+    <span class="material-icons">search</span>
+    <input
+      type="text"
+      placeholder="Search widgets..."
+      [(ngModel)]="searchQuery"
+      (ngModelChange)="onSearchChange()">
+    <button
+      class="clear-btn"
+      *ngIf="searchQuery"
+      (click)="clearSearch()">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+
+  <!-- Widget Categories -->
+  <div class="widget-categories">
+    <div
+      class="widget-category"
+      *ngFor="let category of filteredCategories">
+
+      <!-- Category Header -->
+      <div
+        class="category-header"
+        (click)="toggleCategory(category.name)">
+        <span class="category-icon material-icons">{{ category.icon }}</span>
+        <span class="category-name">{{ category.name }}</span>
+        <span class="category-toggle material-icons">
+          {{ isCategoryExpanded(category.name) ? 'expand_less' : 'expand_more' }}
+        </span>
+      </div>
+
+      <!-- Category Widgets -->
+      <div
+        class="category-widgets"
+        [class.expanded]="isCategoryExpanded(category.name)">
+        <div
+          class="widget-item"
+          *ngFor="let widget of category.widgets"
+          appDraggable
+          [dragType]="'new-widget'"
+          [widgetType]="widget.type"
+          [dragEnabled]="true">
+
+          <div class="widget-icon">
+            <span class="material-icons">{{ widget.icon }}</span>
+          </div>
+
+          <div class="widget-info">
+            <div class="widget-name">{{ widget.type }}</div>
+            <div class="widget-description">{{ widget.description }}</div>
+          </div>
+
+          <div class="widget-drag-handle">
+            <span class="material-icons">drag_indicator</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="filteredCategories.length === 0">
+    <span class="material-icons">search_off</span>
+    <p>No widgets found</p>
+    <small>Try a different search term</small>
+  </div>
+</div>

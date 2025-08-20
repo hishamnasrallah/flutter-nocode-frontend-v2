@@ -1,0 +1,130 @@
+<!-- src/app/features/configuration/configuration/configuration.component.html -->
+
+<div class="configuration-container">
+  <div class="configuration-card">
+    <div class="card-header">
+      <div class="logo">
+        <span class="material-icons">flutter_dash</span>
+      </div>
+      <h1>Flutter No-Code Builder</h1>
+      <p>Configure Backend Connection</p>
+    </div>
+
+    <div class="card-body">
+      <!-- Current Configuration Display -->
+      <div class="current-config" *ngIf="isConfigured">
+        <div class="config-status success">
+          <span class="material-icons">check_circle</span>
+          <div>
+            <strong>Backend Configured</strong>
+            <p>{{ configForm.value.backendUrl }}</p>
+          </div>
+        </div>
+
+        <div class="config-actions">
+          <button class="btn btn-secondary" (click)="changeConfiguration()">
+            <span class="material-icons">edit</span>
+            Change Configuration
+          </button>
+          <button class="btn btn-primary" (click)="saveConfiguration()">
+            <span class="material-icons">arrow_forward</span>
+            Continue to Login
+          </button>
+        </div>
+      </div>
+
+      <!-- Configuration Form -->
+      <form [formGroup]="configForm" *ngIf="!isConfigured">
+        <div class="form-group">
+          <label for="backendUrl">Backend URL</label>
+          <div class="input-group">
+            <span class="input-icon material-icons">link</span>
+            <input
+              type="url"
+              id="backendUrl"
+              formControlName="backendUrl"
+              placeholder="http://localhost:8000"
+              class="form-control"
+              [class.is-invalid]="configForm.get('backendUrl')?.invalid && configForm.get('backendUrl')?.touched">
+          </div>
+
+          <div class="form-error" *ngIf="configForm.get('backendUrl')?.invalid && configForm.get('backendUrl')?.touched">
+            {{ urlError }}
+          </div>
+
+          <div class="form-hint">
+            Enter the URL of your Django backend server. Default is http://localhost:8000
+          </div>
+        </div>
+
+        <!-- Test Result -->
+        <div class="test-result" *ngIf="testSuccess || testError">
+          <div class="alert alert-success" *ngIf="testSuccess">
+            <span class="material-icons">check_circle</span>
+            Connection successful! Backend is reachable.
+          </div>
+
+          <div class="alert alert-error" *ngIf="testError">
+            <span class="material-icons">error</span>
+            Connection failed. Please check the URL and ensure the backend is running.
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-outline"
+            (click)="testConnection()"
+            [disabled]="isTesting || configForm.invalid">
+            <span class="material-icons" *ngIf="!isTesting">network_check</span>
+            <span class="spinner" *ngIf="isTesting"></span>
+            {{ isTesting ? 'Testing...' : 'Test Connection' }}
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="saveConfiguration()"
+            [disabled]="!testSuccess || configForm.invalid">
+            <span class="material-icons">save</span>
+            Save & Continue
+          </button>
+        </div>
+
+        <div class="divider">
+          <span>OR</span>
+        </div>
+
+        <div class="skip-section">
+          <button
+            type="button"
+            class="btn btn-text"
+            (click)="skipConfiguration()">
+            Skip and use default configuration (localhost:8000)
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card-footer">
+      <div class="help-links">
+        <a href="https://github.com/your-repo" target="_blank">
+          <span class="material-icons">help_outline</span>
+          Documentation
+        </a>
+        <a href="https://github.com/your-repo/issues" target="_blank">
+          <span class="material-icons">bug_report</span>
+          Report Issue
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Decoration -->
+  <div class="background-decoration">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+</div>

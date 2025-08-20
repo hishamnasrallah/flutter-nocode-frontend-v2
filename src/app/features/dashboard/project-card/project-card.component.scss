@@ -1,0 +1,309 @@
+// src/app/features/dashboard/project-card/project-card.component.scss
+
+.project-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-thumbnail {
+    height: 160px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .thumbnail-initials {
+      font-size: 48px;
+      font-weight: 600;
+      color: white;
+      opacity: 0.9;
+    }
+
+    .build-status {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+      .material-icons {
+        font-size: 18px;
+      }
+
+      &.status-success {
+        .material-icons {
+          color: #4caf50;
+        }
+      }
+
+      &.status-building {
+        .material-icons {
+          color: #ff9800;
+          animation: spin 2s linear infinite;
+        }
+      }
+
+      &.status-failed {
+        .material-icons {
+          color: #f44336;
+        }
+      }
+
+      &.status-not-built {
+        .material-icons {
+          color: #999;
+        }
+      }
+    }
+  }
+
+  .card-content {
+    padding: 20px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      position: relative;
+
+      .card-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .menu-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #f5f5f5;
+        }
+
+        .material-icons {
+          font-size: 18px;
+          color: #666;
+        }
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 180px;
+        z-index: 10;
+        overflow: hidden;
+
+        .menu-item {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 16px;
+          border: none;
+          background: none;
+          width: 100%;
+          text-align: left;
+          cursor: pointer;
+          color: #333;
+          font-size: 14px;
+          transition: background 0.2s;
+
+          &:hover {
+            background: #f5f5f5;
+          }
+
+          &.danger {
+            color: #f44336;
+          }
+
+          .material-icons {
+            font-size: 18px;
+            color: #666;
+          }
+
+          &.danger .material-icons {
+            color: #f44336;
+          }
+        }
+
+        .menu-divider {
+          height: 1px;
+          background: #e0e0e0;
+          margin: 4px 0;
+        }
+      }
+    }
+
+    .card-description {
+      color: #666;
+      font-size: 14px;
+      margin: 0 0 16px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .card-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #999;
+        font-size: 12px;
+
+        .material-icons {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid #f0f0f0;
+
+      .build-info {
+        .build-status-text {
+          font-size: 12px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+
+          &.status-success {
+            color: #4caf50;
+          }
+
+          &.status-building {
+            color: #ff9800;
+          }
+
+          &.status-failed {
+            color: #f44336;
+          }
+
+          &.status-not-built {
+            color: #999;
+          }
+        }
+      }
+
+      .card-actions {
+        .action-btn {
+          padding: 6px 12px;
+          border: none;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          transition: all 0.2s;
+
+          &.primary {
+            background: #667eea;
+            color: white;
+
+            &:hover {
+              background: #5a67d8;
+            }
+          }
+
+          .material-icons {
+            font-size: 16px;
+          }
+
+          .btn-text {
+            @media (max-width: 480px) {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // List View
+  &.list-view {
+    display: flex;
+    height: 120px;
+
+    .card-thumbnail {
+      width: 120px;
+      height: 100%;
+      flex-shrink: 0;
+
+      .thumbnail-initials {
+        font-size: 32px;
+      }
+    }
+
+    .card-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .card-meta {
+        flex-direction: row;
+        gap: 16px;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .project-card {
+    .card-content {
+      padding: 16px;
+    }
+  }
+}

@@ -1,0 +1,134 @@
+<!-- src/app/features/auth/login/login.component.html -->
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="logo">
+        <span class="material-icons">flutter_dash</span>
+      </div>
+      <h1>Welcome Back</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <div class="auth-body">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <!-- Username Field -->
+        <div class="form-group">
+          <label for="username">Username or Email</label>
+          <div class="input-wrapper">
+            <span class="input-icon material-icons">person</span>
+            <input
+              type="text"
+              id="username"
+              formControlName="username"
+              placeholder="Enter your username"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('username')"
+              autocomplete="username">
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('username')">
+            {{ getFieldError('username') }}
+          </div>
+        </div>
+
+        <!-- Password Field -->
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon material-icons">lock</span>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('password')"
+              autocomplete="current-password">
+            <button
+              type="button"
+              class="input-action"
+              (click)="togglePasswordVisibility()"
+              tabindex="-1">
+              <span class="material-icons">
+                {{ showPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('password')">
+            {{ getFieldError('password') }}
+          </div>
+        </div>
+
+        <!-- Remember Me & Forgot Password -->
+        <div class="form-options">
+          <label class="checkbox-wrapper">
+            <input
+              type="checkbox"
+              [(ngModel)]="rememberMe"
+              [ngModelOptions]="{standalone: true}">
+            <span class="checkmark"></span>
+            <span>Remember me</span>
+          </label>
+
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="btn btn-primary btn-block"
+          [disabled]="isLoading || loginForm.invalid">
+          <span class="spinner" *ngIf="isLoading"></span>
+          <span *ngIf="!isLoading">
+            <span class="material-icons">login</span>
+            Sign In
+          </span>
+        </button>
+
+        <!-- Demo Login Button -->
+        <button
+          type="button"
+          class="btn btn-outline btn-block"
+          (click)="fillDemoCredentials()"
+          [disabled]="isLoading">
+          <span class="material-icons">account_circle</span>
+          Use Demo Account
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">
+        <span>OR</span>
+      </div>
+
+      <!-- Social Login Options (Optional) -->
+      <div class="social-login">
+        <button class="social-btn google" disabled>
+          <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE3LjY0IDkuMjA0NTVDMTcuNjQgOC41NjYzNiAxNy41ODI3IDcuOTUyNzMgMTcuNDc2NCA3LjM2MzY0SDlWMTAuODQ1SDEzLjg0MzZDMTMuNjM1IDExLjk3IDE My4wMDA5IDEyLjkyMzIgMTIuMDQ3NyAxMy41NjE0VjE1LjgxOTVIMTQuOTU2NEMxNi42NTgyIDE0LjI1MjcgMTcuNjQgMTEuOTQ1NSAxNy42NCA5LjIwNDU1WiIgZmlsbD0iIzQyODVGNCIvPgo8cGF0aCBkPSJNOSAxOEM2LjQ3NzI3IDE4IDQuMjk1NDUgMTYuOTkxNCAyLjc4NjM2IDE1LjQwMzJMMi43ODYzNiAxMy4wNjUxSDIuNzg2MzZWMTUuMzkxOEMtMC4yNTkwOTEgMTguMDA1NSA0LjEwNDU1IDE4IDkgMThaIiBmaWxsPSIjMzRBODUzIi8+CjxwYXRoIGQ9Ik0zLjk2NDA5IDEwLjcxQzMuNzg0MDkgMTAuMTcgMy42ODQwOSA5LjU5MzE4IDMuNjg0MDkgOUMzLjY4NDA5IDguNDA2ODIgMy43ODQwOSA3LjgzIDMuOTY0MDkgNy4yOVY0Ljk1ODE4SDIuNzg2MzZDLTAuMzU0NTQ1IDEwLjE3MjcgMi43ODYzNiA0Ljk1ODE4IDIuNzg2MzYgNC45NTgxOEgyLjc4NjM2VjcuMjlDMy42ODQwOSA3LjgzIDMuNzg0MDkgOC40MDY4MiAzLjY4NDA5IDlDMy42ODQwOSA5LjU5MzE4IDMuNzg0MDkgMTAuMTcgMy45NjQwOSAxMC43MVoiIGZpbGw9IiNGQkJDMDUiLz4KPHBhdGggZD0iTTkgMy41NzkwOUMxMC4zMjEzIDMuNTU2MzYgMTEuNTA3NyA0LjAzNjM2IDEyLjQ0MDQgNC44MjU0NUwxNS4wMjE4IDIuMjQ0MDlDMTMuNDYzMiAwLjg5MTgxOCAxMS40MjU5IDAgOSAwQzQuMTAzMTggMCAtMC4yNTkwOTEgMi45OTQ1NSAyLjc4NjM2IDQuOTU4MThMMy45NjQwOSA3LjI5QzQuMzg0MDkgNS4xNjI3MyA2LjQ2OTA5IDMuNTc5MDkgOSAzLjU3OTA5WiIgZmlsbD0iI0VBNDMzNSIvPgo8L3N2Zz4=" alt="Google">
+          Continue with Google
+        </button>
+
+        <button class="social-btn github" disabled>
+          <span class="material-icons">code</span>
+          Continue with GitHub
+        </button>
+      </div>
+
+      <!-- Sign Up Link -->
+      <div class="auth-footer">
+        <p>
+          Don't have an account?
+          <a routerLink="/register">Sign up</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Background Decoration -->
+  <div class="auth-background">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+</div>

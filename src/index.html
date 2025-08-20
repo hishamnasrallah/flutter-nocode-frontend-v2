@@ -1,13 +1,123 @@
+<!-- src/index.html -->
+
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>FlutterNocodeFrontend</title>
+  <title>Flutter No-Code Builder</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="description" content="Build Flutter apps visually with drag and drop interface">
+  <meta name="theme-color" content="#667eea">
+
+  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Prevent FOUC (Flash of Unstyled Content) -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+
+    .app-loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      z-index: 9999;
+    }
+
+    .app-loading-content {
+      text-align: center;
+      color: white;
+    }
+
+    .app-loading-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    .app-loading-logo svg {
+      width: 48px;
+      height: 48px;
+      fill: white;
+    }
+
+    .app-loading-text {
+      font-size: 18px;
+      margin-bottom: 20px;
+      opacity: 0.9;
+    }
+
+    .app-loading-spinner {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- Loading screen shown while Angular loads -->
+    <div class="app-loading">
+      <div class="app-loading-content">
+        <div class="app-loading-logo">
+          <svg viewBox="0 0 24 24">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+        </div>
+        <div class="app-loading-text">Flutter No-Code Builder</div>
+        <div class="app-loading-spinner"></div>
+      </div>
+    </div>
+  </app-root>
+
+  <!-- No JavaScript Message -->
+  <noscript>
+    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-family: sans-serif;">
+      <div style="text-align: center; padding: 20px;">
+        <h1 style="color: #333; margin-bottom: 10px;">JavaScript Required</h1>
+        <p style="color: #666;">Please enable JavaScript to use Flutter No-Code Builder.</p>
+      </div>
+    </div>
+  </noscript>
 </body>
 </html>
