@@ -1,0 +1,510 @@
+<!-- src/app/features/data-sources/data-source-editor/data-source-editor.component.html -->
+
+<div class="data-source-editor">
+  <!-- Header -->
+  <div class="editor-header">
+    <button class="back-btn" (click)="goBack()">
+      <span class="material-icons">arrow_back</span>
+    </button>
+    <h1>{{ isEditMode ? 'Edit' : 'New' }} Data Source</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="testConnection()" [disabled]="!canTest()">
+        <span class="material-icons">network_check</span>
+        Test Connection
+      </button>
+      <button class="btn-primary" (click)="save()" [disabled]="!isValid()">
+        <span class="material-icons">save</span>
+        Save
+      </button>
+    </div>
+  </div>
+
+  <!-- Editor Content -->
+  <div class="editor-content">
+    <!-- Configuration Section -->
+    <div class="config-section">
+      <h2>Configuration</h2>
+
+      <!-- Basic Info -->
+      <div class="form-group">
+        <label for="name">Name *</label>
+        <input
+          id="name"
+          type="text"
+          [(ngModel)]="dataSource.name"
+          placeholder="e.g., User API"
+          required>
+        <span class="helper-text">A descriptive name for this data source</span>
+      </div>
+
+      <!-- Type Selection -->
+      <div class="form-group">
+        <label>Type *</label>
+        <div class="type-selector">
+          <button
+            *ngFor="let type of dataSourceTypes"
+            class="type-option"
+            [class.selected]="dataSource.data_source_type === type.value"
+            (click)="selectType(type.value)">
+            <span class="material-icons">{{ type.icon }}</span>
+            <span>{{ type.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- REST API Configuration -->
+      <div class="api-config" *ngIf="dataSource.data_source_type === 'REST_API'">
+        <!-- Base URL -->
+        <div class="form-group">
+          <label for="baseUrl">Base URL *</label>
+          <div class="input-with-addon">
+            <input
+              id="baseUrl"
+              type="url"
+              [(ngModel)]="dataSource.base_url"
+              placeholder="https://api.example.com"
+              (blur)="validateUrl()"
+              required>
+            <button class="addon-btn" (click)="toggleDynamicUrl()" [class.active]="dataSource.use_dynamic_base_url">
+              <span class="material-icons">link</span>
+              Dynamic
+            </button>
+          </div>
+          <span class="error-text" *ngIf="urlError">{{ urlError }}</span>
+        </div>
+
+        <!-- Dynamic URL Config -->
+        <div class="dynamic-url-config" *ngIf="dataSource.use_dynamic_base_url">
+          <div class="info-banner">
+            <span class="material-icons">info</span>
+            <p>Use environment variables or app configuration to set the base URL dynamically</p>
+          </div>
+          <div class="form-group">
+            <label>Variable Name</label>
+            <input
+              type="text"
+              [(ngModel)]="dynamicUrlVariable"
+              placeholder="API_BASE_URL">
+          </div>
+        </div>
+
+        <!-- Endpoint -->
+        <div class="form-group">
+          <label for="endpoint">Endpoint *</label>
+          <div class="endpoint-builder">
+            <select [(ngModel)]="dataSource.method" class="method-select">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+            </select>
+            <input
+              id="endpoint"
+              type="text"
+              [(ngModel)]="dataSource.endpoint"
+              placeholder="/users/{id}"
+              (input)="parseEndpointVariables()"
+              required>
+          </div>
+          <div class="endpoint-variables" *ngIf="endpointVariables.length > 0">
+            <span class="variables-label">Variables:</span>
+            <span class="variable-chip" *ngFor="let variable of endpointVariables">
+              {{ variable }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Authentication -->
+        <div class="form-group">
+          <label>Authentication</label>
+          <select [(ngModel)]="authType" (change)="onAuthTypeChange()">
+            <option value="none">No Authentication</option>
+            <option value="bearer">Bearer Token</option>
+            <option value="api_key">API Key</option>
+            <option value="basic">Basic Auth</option>
+            <option value="oauth2">OAuth 2.0</option>
+          </select>
+        </div>
+
+        <!-- Auth Configuration -->
+        <div class="auth-config" *ngIf="authType !== 'none'">
+          <!-- Bearer Token -->
+          <div *ngIf="authType === 'bearer'" class="form-group">
+            <label>Bearer Token</label>
+            <input
+              type="password"
+              [(ngModel)]="authConfig.bearerToken"
+              placeholder="Enter token or use variable ${TOKEN}">
+          </div>
+
+          <!-- API Key -->
+          <div *ngIf="authType === 'api_key'">
+            <div class="form-group">
+              <label>API Key Location</label>
+              <select [(ngModel)]="authConfig.apiKeyLocation">
+                <option value="header">Header</option>
+                <option value="query">Query Parameter</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Key Name</label>
+              <input
+                type="text"
+                [(ngModel)]="authConfig.apiKeyName"
+                placeholder="X-API-Key">
+            </div>
+            <div class="form-group">
+              <label>Key Value</label>
+              <input
+                type="password"
+                [(ngModel)]="authConfig.apiKeyValue"
+                placeholder="Enter API key">
+            </div>
+          </div>
+
+          <!-- Basic Auth -->
+          <div *ngIf="authType === 'basic'">
+            <div class="form-group">
+              <label>Username</label>
+              <input
+                type="text"
+                [(ngModel)]="authConfig.username"
+                placeholder="Username">
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                [(ngModel)]="authConfig.password"
+                placeholder="Password">
+            </div>
+          </div>
+        </div>
+
+        <!-- Headers -->
+        <div class="form-group">
+          <label>Headers</label>
+          <div class="headers-editor">
+            <div class="header-row" *ngFor="let header of headers; let i = index">
+              <input
+                type="text"
+                [(ngModel)]="header.key"
+                placeholder="Header name"
+                class="header-key">
+              <input
+                type="text"
+                [(ngModel)]="header.value"
+                placeholder="Header value"
+                class="header-value">
+              <button class="remove-btn" (click)="removeHeader(i)">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
+            <button class="add-header-btn" (click)="addHeader()">
+              <span class="material-icons">add</span>
+              Add Header
+            </button>
+          </div>
+        </div>
+
+        <!-- Request Body (for POST/PUT/PATCH) -->
+        <div class="form-group" *ngIf="['POST', 'PUT', 'PATCH'].includes(dataSource.method)">
+          <label>Request Body Template</label>
+          <div class="code-editor">
+            <select [(ngModel)]="bodyFormat" class="format-select">
+              <option value="json">JSON</option>
+              <option value="form">Form Data</option>
+              <option value="raw">Raw</option>
+            </select>
+            <textarea
+              [(ngModel)]="requestBody"
+              placeholder='{"key": "value"}'
+              rows="8"
+              [class.error]="!isJsonValid(requestBody) && bodyFormat === 'json'">
+            </textarea>
+            <span class="error-text" *ngIf="!isJsonValid(requestBody) && bodyFormat === 'json'">
+              Invalid JSON format
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- GraphQL Configuration -->
+      <div class="graphql-config" *ngIf="dataSource.data_source_type === 'GRAPHQL'">
+        <div class="form-group">
+          <label>GraphQL Endpoint *</label>
+          <input
+            type="url"
+            [(ngModel)]="dataSource.base_url"
+            placeholder="https://api.example.com/graphql"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Query</label>
+          <div class="code-editor">
+            <textarea
+              [(ngModel)]="graphqlQuery"
+              placeholder="query { users { id name email } }"
+              rows="10">
+            </textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Variables (JSON)</label>
+          <textarea
+            [(ngModel)]="graphqlVariables"
+            placeholder='{"userId": 1}'
+            rows="4">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Firebase Configuration -->
+      <div class="firebase-config" *ngIf="dataSource.data_source_type === 'FIREBASE'">
+        <div class="form-group">
+          <label>Firebase Project URL *</label>
+          <input
+            type="url"
+            [(ngModel)]="dataSource.base_url"
+            placeholder="https://your-project.firebaseio.com"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Collection/Path *</label>
+          <input
+            type="text"
+            [(ngModel)]="dataSource.endpoint"
+            placeholder="users"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Service Account Key (JSON)</label>
+          <textarea
+            [(ngModel)]="firebaseConfig"
+            placeholder="Paste your Firebase service account key JSON"
+            rows="8">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- Supabase Configuration -->
+      <div class="supabase-config" *ngIf="dataSource.data_source_type === 'SUPABASE'">
+        <div class="form-group">
+          <label>Supabase URL *</label>
+          <input
+            type="url"
+            [(ngModel)]="dataSource.base_url"
+            placeholder="https://your-project.supabase.co"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Table Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="dataSource.endpoint"
+            placeholder="users"
+            required>
+        </div>
+
+        <div class="form-group">
+          <label>Anon Key *</label>
+          <input
+            type="password"
+            [(ngModel)]="supabaseAnonKey"
+            placeholder="Your Supabase anon key"
+            required>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fields Configuration -->
+    <div class="fields-section">
+      <div class="section-header">
+        <h2>Field Mapping</h2>
+        <div class="section-actions">
+          <button class="btn-secondary" (click)="autoDetectFields()" [disabled]="isDetecting">
+            <span class="material-icons">auto_fix_high</span>
+            {{ isDetecting ? 'Detecting...' : 'Auto Detect' }}
+          </button>
+          <button class="btn-secondary" (click)="addField()">
+            <span class="material-icons">add</span>
+            Add Field
+          </button>
+        </div>
+      </div>
+
+      <!-- Sample Response -->
+      <div class="sample-response" *ngIf="sampleResponse">
+        <div class="response-header">
+          <h3>Sample Response</h3>
+          <button class="toggle-btn" (click)="showSampleResponse = !showSampleResponse">
+            <span class="material-icons">{{ showSampleResponse ? 'expand_less' : 'expand_more' }}</span>
+          </button>
+        </div>
+        <pre *ngIf="showSampleResponse" class="response-preview">{{ sampleResponse | json }}</pre>
+      </div>
+
+      <!-- Fields List -->
+      <div class="fields-list">
+        <div class="field-item" *ngFor="let field of fields; let i = index">
+          <div class="field-header">
+            <span class="field-number">{{ i + 1 }}</span>
+            <button class="remove-field-btn" (click)="removeField(i)">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+
+          <div class="field-content">
+            <div class="field-row">
+              <div class="field-input">
+                <label>Field Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="field.field_name"
+                  placeholder="user_id"
+                  required>
+              </div>
+
+              <div class="field-input">
+                <label>Display Name *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="field.display_name"
+                  placeholder="User ID"
+                  required>
+              </div>
+
+              <div class="field-input">
+                <label>Type *</label>
+                <select [(ngModel)]="field.field_type" required>
+                  <option value="string">String</option>
+                  <option value="integer">Integer</option>
+                  <option value="decimal">Decimal</option>
+                  <option value="boolean">Boolean</option>
+                  <option value="date">Date</option>
+                  <option value="datetime">DateTime</option>
+                  <option value="url">URL</option>
+                  <option value="image_url">Image URL</option>
+                  <option value="email">Email</option>
+                  <option value="phone">Phone</option>
+                  <option value="array">Array</option>
+                  <option value="object">Object</option>
+                  <option value="json">JSON</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-checkbox">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="field.is_required"
+                  [id]="'required_' + i">
+                <label [for]="'required_' + i">Required</label>
+              </div>
+
+              <div class="field-input">
+                <label>Default Value</label>
+                <input
+                  type="text"
+                  [(ngModel)]="field.default_value"
+                  placeholder="Optional default value">
+              </div>
+
+              <div class="field-input">
+                <label>Validation Rules (JSON)</label>
+                <input
+                  type="text"
+                  [(ngModel)]="field.validation_rules"
+                  placeholder='{"min": 0, "max": 100}'>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-fields" *ngIf="fields.length === 0">
+          <span class="material-icons">schema</span>
+          <p>No fields configured yet</p>
+          <button class="btn-primary" (click)="autoDetectFields()">
+            Auto Detect Fields
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Connection Section -->
+    <div class="test-section">
+      <h2>Test Connection</h2>
+
+      <div class="test-parameters" *ngIf="endpointVariables.length > 0 || (dataSource.method !== 'GET' && dataSource.method !== 'DELETE')">
+        <h3>Test Parameters</h3>
+
+        <!-- Endpoint Variables -->
+        <div class="param-group" *ngIf="endpointVariables.length > 0">
+          <label>Endpoint Variables</label>
+          <div class="param-input" *ngFor="let variable of endpointVariables">
+            <label>{{ variable }}:</label>
+            <input
+              type="text"
+              [(ngModel)]="testParams[variable]"
+              placeholder="Enter test value">
+          </div>
+        </div>
+
+        <!-- Request Body for Testing -->
+        <div class="param-group" *ngIf="['POST', 'PUT', 'PATCH'].includes(dataSource.method)">
+          <label>Test Request Body</label>
+          <textarea
+            [(ngModel)]="testRequestBody"
+            placeholder='{"name": "Test User", "email": "test@example.com"}'
+            rows="6">
+          </textarea>
+        </div>
+      </div>
+
+      <div class="test-actions">
+        <button class="btn-primary" (click)="executeTest()" [disabled]="isTesting || !canTest()">
+          <span class="material-icons" *ngIf="!isTesting">play_arrow</span>
+          <div class="loading-spinner-small" *ngIf="isTesting"></div>
+          {{ isTesting ? 'Testing...' : 'Run Test' }}
+        </button>
+      </div>
+
+      <!-- Test Results -->
+      <div class="test-results" *ngIf="testResult">
+        <div class="result-header" [class.success]="testResult.success" [class.error]="!testResult.success">
+          <span class="material-icons">{{ testResult.success ? 'check_circle' : 'error' }}</span>
+          <span>{{ testResult.success ? 'Connection Successful' : 'Connection Failed' }}</span>
+          <span class="status-code" *ngIf="testResult.status_code">
+            Status: {{ testResult.status_code }}
+          </span>
+        </div>
+
+        <div class="result-body">
+          <div class="result-section" *ngIf="testResult.error_message">
+            <h4>Error Message</h4>
+            <pre class="error-message">{{ testResult.error_message }}</pre>
+          </div>
+
+          <div class="result-section" *ngIf="testResult.response_data">
+            <h4>Response Data</h4>
+            <pre class="response-data">{{ testResult.response_data | json }}</pre>
+          </div>
+
+          <div class="result-actions" *ngIf="testResult.success && testResult.response_data">
+            <button class="btn-secondary" (click)="useResponseForFields()">
+              <span class="material-icons">auto_awesome</span>
+              Use Response to Generate Fields
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

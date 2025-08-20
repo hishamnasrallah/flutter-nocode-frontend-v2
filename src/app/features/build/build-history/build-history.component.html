@@ -1,0 +1,322 @@
+<!-- src/app/features/build/build-history/build-history.component.html -->
+
+<div class="build-history-container">
+  <!-- Header -->
+  <div class="history-header">
+    <div class="header-content">
+      <button class="back-btn" (click)="goBack()">
+        <span class="material-icons">arrow_back</span>
+      </button>
+      <h1>Build History</h1>
+      <div class="header-actions">
+        <button class="btn-icon" (click)="refreshHistory()" [disabled]="isLoading">
+          <span class="material-icons" [class.spinning]="isLoading">refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Application Info -->
+    <div class="app-info" *ngIf="application">
+      <div class="app-icon">
+        <span class="material-icons">apps</span>
+      </div>
+      <div class="app-details">
+        <h3>{{ application.name }}</h3>
+        <span class="package-name">{{ application.package_name }}</span>
+      </div>
+      <button class="btn btn-primary" (click)="startNewBuild()">
+        <span class="material-icons">build</span>
+        New Build
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Status</label>
+        <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilter()">
+          <option value="">All Builds</option>
+          <option value="success">Successful</option>
+          <option value="failed">Failed</option>
+          <option value="building">In Progress</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Platform</label>
+        <select [(ngModel)]="filterPlatform" (ngModelChange)="applyFilter()">
+          <option value="">All Platforms</option>
+          <option value="android">Android</option>
+          <option value="ios">iOS</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Build Type</label>
+        <select [(ngModel)]="filterBuildType" (ngModelChange)="applyFilter()">
+          <option value="">All Types</option>
+          <option value="debug">Debug</option>
+          <option value="release">Release</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Build Stats -->
+  <div class="build-stats">
+    <div class="stat-card">
+      <div class="stat-icon success">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.successful }}</div>
+        <div class="stat-label">Successful</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon failed">
+        <span class="material-icons">error</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.failed }}</div>
+        <div class="stat-label">Failed</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon building">
+        <span class="material-icons">sync</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.inProgress }}</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <span class="material-icons">history</span>
+      </div>
+      <div class="stat-content">
+        <div class="stat-value">{{ stats.total }}</div>
+        <div class="stat-label">Total Builds</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="build-timeline">
+    <!-- Active Builds -->
+    <div class="active-builds" *ngIf="activeBuilds.length > 0">
+      <h2>Active Builds</h2>
+      <div class="active-build-card" *ngFor="let build of activeBuilds">
+        <div class="build-progress-header">
+          <div class="build-info">
+            <span class="build-type">{{ build.build_type | uppercase }}</span>
+            <span class="build-platform">
+              <span class="material-icons">{{ getPlatformIcon(build.platform) }}</span>
+              {{ build.platform | titlecase }}
+            </span>
+          </div>
+          <button class="btn-cancel" (click)="cancelBuild(build)">
+            <span class="material-icons">stop</span>
+            Cancel
+          </button>
+        </div>
+
+        <div class="build-status-message">
+          <span class="material-icons spinning">sync</span>
+          <span>{{ getStatusMessage(build) }}</span>
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="getBuildProgress(build)"></div>
+        </div>
+
+        <div class="build-timer">
+          <span class="material-icons">schedule</span>
+          <span>{{ formatDuration(build) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Build History Timeline -->
+    <h2>Build History</h2>
+
+    <div class="timeline" *ngIf="!isLoading && filteredBuilds.length > 0">
+      <div class="timeline-item"
+           *ngFor="let build of filteredBuilds; trackBy: trackByBuildId"
+           [class.expanded]="expandedBuildId === build.id">
+
+        <!-- Timeline Marker -->
+        <div class="timeline-marker" [ngClass]="getStatusClass(build.status)">
+          <span class="material-icons">{{ getStatusIcon(build.status) }}</span>
+        </div>
+
+        <!-- Build Card -->
+        <div class="build-card" (click)="toggleExpanded(build.id)">
+          <!-- Build Header -->
+          <div class="build-header">
+            <div class="build-title">
+              <span class="build-number">#{{ build.id }}</span>
+              <span class="build-type-badge" [ngClass]="build.build_type">
+                {{ build.build_type | uppercase }}
+              </span>
+              <span class="build-platform">
+                <span class="material-icons">{{ getPlatformIcon(build.platform) }}</span>
+                {{ build.platform | titlecase }}
+              </span>
+            </div>
+
+            <div class="build-actions">
+              <button class="btn-icon"
+                      *ngIf="build.status === 'success' && build.apk_file"
+                      (click)="downloadApk(build, $event)"
+                      title="Download APK">
+                <span class="material-icons">android</span>
+              </button>
+              <button class="btn-icon"
+                      *ngIf="build.source_code_zip"
+                      (click)="downloadSource(build, $event)"
+                      title="Download Source Code">
+                <span class="material-icons">code</span>
+              </button>
+              <button class="btn-icon"
+                      (click)="viewLogs(build, $event)"
+                      title="View Logs">
+                <span class="material-icons">description</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Build Info -->
+          <div class="build-info-row">
+            <div class="build-status" [ngClass]="getStatusClass(build.status)">
+              <span class="material-icons">{{ getStatusIcon(build.status) }}</span>
+              <span>{{ getStatusLabel(build.status) }}</span>
+            </div>
+
+            <div class="build-meta">
+              <span class="build-date">
+                <span class="material-icons">event</span>
+                {{ formatDate(build.build_start_time) }}
+              </span>
+              <span class="build-duration" *ngIf="build.duration_seconds">
+                <span class="material-icons">schedule</span>
+                {{ formatDurationSeconds(build.duration_seconds) }}
+              </span>
+              <span class="build-size" *ngIf="build.apk_size_mb">
+                <span class="material-icons">storage</span>
+                {{ build.apk_size_mb }} MB
+              </span>
+            </div>
+          </div>
+
+          <!-- Expanded Details -->
+          <div class="build-details" *ngIf="expandedBuildId === build.id">
+            <div class="detail-row">
+              <label>Build ID:</label>
+              <span class="mono">{{ build.build_id }}</span>
+            </div>
+
+            <div class="detail-row">
+              <label>Started:</label>
+              <span>{{ formatDateTime(build.build_start_time) }}</span>
+            </div>
+
+            <div class="detail-row" *ngIf="build.build_end_time">
+              <label>Completed:</label>
+              <span>{{ formatDateTime(build.build_end_time) }}</span>
+            </div>
+
+            <div class="detail-row" *ngIf="build.error_message">
+              <label>Error:</label>
+              <span class="error-message">{{ build.error_message }}</span>
+            </div>
+
+            <!-- Build Configuration -->
+            <div class="build-config" *ngIf="build.status === 'success'">
+              <h4>Build Configuration</h4>
+              <div class="config-grid">
+                <div class="config-item">
+                  <label>Type:</label>
+                  <span>{{ build.build_type | titlecase }}</span>
+                </div>
+                <div class="config-item">
+                  <label>Platform:</label>
+                  <span>{{ build.platform | titlecase }}</span>
+                </div>
+                <div class="config-item" *ngIf="build.apk_size_mb">
+                  <label>APK Size:</label>
+                  <span>{{ build.apk_size_mb }} MB</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && filteredBuilds.length === 0">
+      <div class="empty-icon">
+        <span class="material-icons">history</span>
+      </div>
+      <h3>No Builds Found</h3>
+      <p>{{ getEmptyMessage() }}</p>
+      <button class="btn btn-primary" (click)="startNewBuild()">
+        <span class="material-icons">build</span>
+        Start Your First Build
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Loading build history...</p>
+    </div>
+
+    <!-- Load More -->
+    <div class="load-more" *ngIf="hasMore && !isLoading">
+      <button class="btn btn-secondary" (click)="loadMore()">
+        Load More Builds
+      </button>
+    </div>
+  </div>
+
+  <!-- Build Dialog -->
+  <app-build-dialog
+    *ngIf="showBuildDialog"
+    [application]="application!"
+    (close)="closeBuildDialog()"
+    (buildStarted)="onBuildStarted($event)"
+    (buildCompleted)="onBuildCompleted($event)">
+  </app-build-dialog>
+
+  <!-- Log Viewer Modal -->
+  <div class="log-modal" *ngIf="showLogModal" (click)="closeLogModal()">
+    <div class="log-modal-content" (click)="$event.stopPropagation()">
+      <div class="log-modal-header">
+        <h3>Build Logs - #{{ selectedBuild?.id }}</h3>
+        <button class="close-btn" (click)="closeLogModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="log-modal-body">
+        <pre>{{ selectedBuildLogs }}</pre>
+      </div>
+      <div class="log-modal-footer">
+        <button class="btn btn-secondary" (click)="copyLogs()">
+          <span class="material-icons">content_copy</span>
+          Copy Logs
+        </button>
+        <button class="btn btn-primary" (click)="downloadLogs()">
+          <span class="material-icons">download</span>
+          Download Logs
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,99 @@
+<!-- src/app/shared/components/toast-notification/toast-notification.component.html -->
+
+<div class="toast-container"
+     [class]="'toast-position-' + position"
+     [attr.aria-live]="ariaLive"
+     [attr.aria-atomic]="true">
+
+  <!-- Toast Items -->
+  <div class="toast-wrapper"
+       *ngFor="let toast of visibleToasts; trackBy: trackByToastId"
+       [@slideIn]="getAnimationState(toast)"
+       (@slideIn.done)="onAnimationDone($event, toast)">
+
+    <div class="toast"
+         [class]="'toast-' + toast.type"
+         [class.toast-with-action]="toast.action"
+         [class.toast-dismissible]="toast.dismissible"
+         (click)="onToastClick(toast)"
+         (touchstart)="onTouchStart($event, toast)"
+         (touchmove)="onTouchMove($event, toast)"
+         (touchend)="onTouchEnd($event, toast)"
+         [style.transform]="'translateX(' + toast.swipeOffset + 'px)'"
+         [style.opacity]="1 - Math.abs(toast.swipeOffset) / 200">
+
+      <!-- Progress Bar -->
+      <div class="toast-progress"
+           *ngIf="toast.showProgress && toast.duration > 0"
+           [style.animation-duration]="toast.duration + 'ms'">
+      </div>
+
+      <!-- Toast Content -->
+      <div class="toast-content">
+        <!-- Icon -->
+        <div class="toast-icon-wrapper">
+          <span class="material-icons toast-icon">{{ getToastIcon(toast) }}</span>
+        </div>
+
+        <!-- Message -->
+        <div class="toast-message">
+          <div class="toast-title" *ngIf="toast.title">
+            {{ toast.title }}
+          </div>
+          <div class="toast-text" [innerHTML]="sanitizeHtml(toast.message)"></div>
+        </div>
+
+        <!-- Action Button -->
+        <button class="toast-action"
+                *ngIf="toast.action"
+                (click)="onActionClick($event, toast)">
+          {{ toast.action.label }}
+        </button>
+
+        <!-- Close Button -->
+        <button class="toast-close"
+                *ngIf="toast.dismissible"
+                (click)="onCloseClick($event, toast)"
+                [attr.aria-label]="'Close ' + toast.type + ' notification'">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <!-- Mobile Swipe Indicator -->
+      <div class="swipe-indicator"
+           *ngIf="isMobile && toast.dismissible"
+           [style.opacity]="Math.abs(toast.swipeOffset) / 100">
+        <span class="material-icons">
+          {{ toast.swipeOffset > 0 ? 'arrow_forward' : 'arrow_back' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Queue Counter -->
+  <div class="toast-queue-indicator"
+       *ngIf="queuedToasts.length > 0"
+       [@fadeIn]>
+    <span class="queue-count">+{{ queuedToasts.length }}</span>
+    <span class="queue-text">more</span>
+  </div>
+</div>
+
+<!-- Global Styles for Portal -->
+<ng-container *ngIf="renderPortal">
+  <style>
+    body > .toast-notification-portal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    body > .toast-notification-portal .toast-container {
+      pointer-events: auto;
+    }
+  </style>
+</ng-container>

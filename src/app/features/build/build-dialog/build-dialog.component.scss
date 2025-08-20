@@ -1,0 +1,590 @@
+// src/app/features/build/build-dialog/build-dialog.component.scss
+
+.build-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.build-dialog {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dialog-header {
+  padding: 24px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #333;
+    }
+  }
+}
+
+// Build Status Section
+.build-status {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+
+  .status-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 48px;
+
+    &.building {
+      background: rgba(33, 150, 243, 0.1);
+      color: #2196f3;
+    }
+
+    &.success {
+      background: rgba(76, 175, 80, 0.1);
+      color: #4caf50;
+    }
+
+    &.failed {
+      background: rgba(244, 67, 54, 0.1);
+      color: #f44336;
+    }
+
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+  }
+
+  .status-info {
+    text-align: center;
+    margin-bottom: 24px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .status-message {
+      color: #666;
+      margin: 0;
+    }
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
+    margin: 16px 0;
+    overflow: hidden;
+
+    .progress-fill {
+      height: 100%;
+      background: #2196f3;
+      transition: width 0.3s ease;
+    }
+  }
+
+  .build-timer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #666;
+    font-size: 14px;
+    margin-top: 12px;
+
+    .material-icons {
+      font-size: 18px;
+    }
+  }
+
+  .build-log {
+    margin-top: 24px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+
+    .log-header {
+      padding: 12px 16px;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 500;
+
+      .toggle-log {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: #666;
+      }
+    }
+
+    .log-content {
+      max-height: 200px;
+      overflow-y: auto;
+      background: #1e1e1e;
+      padding: 12px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+
+      &.expanded {
+        max-height: 400px;
+      }
+
+      .log-entry {
+        margin-bottom: 4px;
+        display: flex;
+        gap: 12px;
+
+        .log-time {
+          color: #666;
+          flex-shrink: 0;
+        }
+
+        .log-message {
+          flex: 1;
+          word-break: break-word;
+        }
+
+        &.log-info {
+          color: #b0b0b0;
+        }
+
+        &.log-warning {
+          color: #ffa726;
+        }
+
+        &.log-error {
+          color: #ef5350;
+        }
+
+        &.log-debug {
+          color: #666;
+        }
+      }
+    }
+  }
+
+  .build-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+  }
+}
+
+// Build Configuration Section
+.build-configuration {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.form-section {
+  margin-bottom: 24px;
+
+  h3 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+
+    .material-icons {
+      font-size: 20px;
+      color: #666;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.form-group {
+  flex: 1;
+
+  &.half {
+    flex: 0 0 calc(50% - 8px);
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d0d0d0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: #2196f3;
+      box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+    }
+
+    &:disabled {
+      background: #f5f5f5;
+      cursor: not-allowed;
+    }
+  }
+
+  .form-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #666;
+  }
+}
+
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.radio-option {
+  display: flex;
+  cursor: pointer;
+
+  input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+
+    &:checked + .radio-label {
+      background: rgba(33, 150, 243, 0.05);
+      border-color: #2196f3;
+    }
+  }
+
+  .radio-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: #2196f3;
+    }
+
+    .radio-icon {
+      font-size: 24px;
+    }
+
+    .radio-text {
+      flex: 1;
+
+      strong {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 14px;
+      }
+
+      small {
+        color: #666;
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+.platform-selector {
+  display: flex;
+  gap: 12px;
+
+  .platform-option {
+    flex: 1;
+    padding: 16px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+
+    .material-icons {
+      font-size: 32px;
+      color: #666;
+    }
+
+    span:not(.material-icons) {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    &:hover:not(.disabled) {
+      border-color: #2196f3;
+    }
+
+    &.selected {
+      background: rgba(33, 150, 243, 0.05);
+      border-color: #2196f3;
+
+      .material-icons {
+        color: #2196f3;
+      }
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .badge {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: #ff9800;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+  }
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    margin-top: 2px;
+  }
+
+  span {
+    flex: 1;
+    font-size: 14px;
+  }
+}
+
+.advanced-options {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.requirements-checklist {
+  .requirement {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+
+    .material-icons {
+      font-size: 20px;
+      color: #d0d0d0;
+      margin-top: 2px;
+    }
+
+    .requirement-text {
+      flex: 1;
+
+      strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+
+      small {
+        color: #666;
+        font-size: 12px;
+      }
+    }
+
+    &.met {
+      .material-icons {
+        color: #4caf50;
+      }
+    }
+  }
+}
+
+.build-estimate {
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #666;
+
+  .material-icons {
+    font-size: 20px;
+  }
+
+  strong {
+    color: #333;
+  }
+}
+
+.dialog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+// Buttons
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  .material-icons {
+    font-size: 18px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: #2196f3;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #1976d2;
+    }
+  }
+
+  &.btn-secondary {
+    background: #f5f5f5;
+    color: #333;
+
+    &:hover:not(:disabled) {
+      background: #e0e0e0;
+    }
+  }
+
+  &.btn-danger {
+    background: #f44336;
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: #d32f2f;
+    }
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .build-dialog {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .form-row {
+    flex-direction: column;
+
+    .form-group.half {
+      flex: 1;
+    }
+  }
+
+  .platform-selector {
+    flex-direction: column;
+  }
+
+  .build-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

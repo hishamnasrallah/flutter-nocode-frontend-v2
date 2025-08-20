@@ -1,0 +1,483 @@
+<!-- src/app/features/actions/action-editor/action-editor.component.html -->
+
+<div class="action-editor-container">
+  <!-- Header -->
+  <div class="editor-header">
+    <h2>{{ isEditMode ? 'Edit Action' : 'Create New Action' }}</h2>
+    <button class="close-btn" (click)="onCancel()">
+      <span class="material-icons">close</span>
+    </button>
+  </div>
+
+  <!-- Form Content -->
+  <div class="editor-body">
+    <!-- Basic Information -->
+    <div class="form-section">
+      <h3 class="section-title">Basic Information</h3>
+
+      <div class="form-group">
+        <label for="action-name">Action Name *</label>
+        <input
+          id="action-name"
+          type="text"
+          [(ngModel)]="formData.name"
+          placeholder="Enter action name"
+          class="form-control"
+          [class.invalid]="validationErrors['name']">
+        <span class="error-message" *ngIf="validationErrors['name']">
+          {{ validationErrors['name'] }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Action Type Selection -->
+    <div class="form-section">
+      <h3 class="section-title">Action Type</h3>
+
+      <div class="action-type-grid">
+        <div
+          *ngFor="let category of actionCategories"
+          class="action-category">
+
+          <h4 class="category-label">
+            <span class="material-icons">{{ category.icon }}</span>
+            {{ category.name }}
+          </h4>
+
+          <div class="action-type-cards">
+            <div
+              *ngFor="let type of category.types"
+              class="action-type-card"
+              [class.selected]="formData.action_type === type.type"
+              (click)="selectActionType(type.type)">
+
+              <div class="type-icon" [style.background-color]="getCategoryColor(category.name)">
+                <span class="material-icons">{{ type.icon }}</span>
+              </div>
+
+              <div class="type-info">
+                <h5>{{ type.label }}</h5>
+                <p>{{ type.description }}</p>
+              </div>
+
+              <div class="type-check" *ngIf="formData.action_type === type.type">
+                <span class="material-icons">check_circle</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Parameters Based on Action Type -->
+    <div class="form-section" *ngIf="formData.action_type">
+      <h3 class="section-title">Configuration</h3>
+
+      <!-- Navigation Actions -->
+      <div *ngIf="formData.action_type === 'navigate'" class="parameter-section">
+        <div class="form-group">
+          <label for="target-screen">Target Screen *</label>
+          <select
+            id="target-screen"
+            [(ngModel)]="formData.target_screen"
+            class="form-control"
+            [class.invalid]="validationErrors['target_screen']">
+            <option [value]="null">Select a screen...</option>
+            <option *ngFor="let screen of screens" [value]="screen.id">
+              {{ screen.name }}
+              <span class="route-badge">{{ screen.route_name }}</span>
+            </option>
+          </select>
+          <span class="error-message" *ngIf="validationErrors['target_screen']">
+            {{ validationErrors['target_screen'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Navigation Parameters (Optional)</label>
+          <div class="json-editor">
+            <textarea
+              [(ngModel)]="navigationParams"
+              placeholder='{"userId": 123, "tab": "profile"}'
+              rows="3"
+              class="form-control code-input"></textarea>
+            <small class="helper-text">JSON format for passing data to the screen</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- API Call Actions -->
+      <div *ngIf="formData.action_type === 'api_call'" class="parameter-section">
+        <div class="form-group">
+          <label for="data-source">Data Source *</label>
+          <select
+            id="data-source"
+            [(ngModel)]="formData.api_data_source"
+            class="form-control"
+            [class.invalid]="validationErrors['api_data_source']">
+            <option [value]="null">Select a data source...</option>
+            <option *ngFor="let ds of dataSources" [value]="ds.id">
+              {{ ds.name }}
+              <span class="method-badge" [class]="ds.method.toLowerCase()">{{ ds.method }}</span>
+            </option>
+          </select>
+          <span class="error-message" *ngIf="validationErrors['api_data_source']">
+            {{ validationErrors['api_data_source'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Request Parameters</label>
+          <div class="parameter-builder">
+            <div *ngFor="let param of apiParameters; let i = index" class="parameter-row">
+              <input
+                type="text"
+                [(ngModel)]="param.key"
+                placeholder="Parameter name"
+                class="form-control">
+              <select [(ngModel)]="param.type" class="form-control">
+                <option value="static">Static</option>
+                <option value="dynamic">Dynamic</option>
+                <option value="widget">From Widget</option>
+              </select>
+              <input
+                type="text"
+                [(ngModel)]="param.value"
+                [placeholder]="getParameterPlaceholder(param.type)"
+                class="form-control">
+              <button class="btn-icon danger" (click)="removeApiParameter(i)">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+            <button class="btn-text" (click)="addApiParameter()">
+              <span class="material-icons">add</span>
+              Add Parameter
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Response Handling</label>
+          <select [(ngModel)]="responseHandling" class="form-control">
+            <option value="none">No Action</option>
+            <option value="save">Save to State</option>
+            <option value="display">Display in Widget</option>
+            <option value="navigate">Navigate on Success</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Dialog Actions -->
+      <div *ngIf="formData.action_type === 'show_dialog'" class="parameter-section">
+        <div class="form-group">
+          <label for="dialog-title">Dialog Title *</label>
+          <input
+            id="dialog-title"
+            type="text"
+            [(ngModel)]="formData.dialog_title"
+            placeholder="Enter dialog title"
+            class="form-control"
+            [class.invalid]="validationErrors['dialog_title']">
+          <span class="error-message" *ngIf="validationErrors['dialog_title']">
+            {{ validationErrors['dialog_title'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="dialog-message">Dialog Message *</label>
+          <textarea
+            id="dialog-message"
+            [(ngModel)]="formData.dialog_message"
+            placeholder="Enter dialog message"
+            rows="3"
+            class="form-control"
+            [class.invalid]="validationErrors['dialog_message']"></textarea>
+          <span class="error-message" *ngIf="validationErrors['dialog_message']">
+            {{ validationErrors['dialog_message'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Dialog Buttons</label>
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="dialogOptions.showCancel">
+              Show Cancel Button
+            </label>
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="dialogOptions.showConfirm">
+              Show Confirm Button
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Snackbar Actions -->
+      <div *ngIf="formData.action_type === 'show_snackbar'" class="parameter-section">
+        <div class="form-group">
+          <label for="snackbar-message">Message *</label>
+          <input
+            id="snackbar-message"
+            type="text"
+            [(ngModel)]="formData.dialog_message"
+            placeholder="Enter snackbar message"
+            class="form-control"
+            [class.invalid]="validationErrors['dialog_message']">
+          <span class="error-message" *ngIf="validationErrors['dialog_message']">
+            {{ validationErrors['dialog_message'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="snackbar-duration">Duration (seconds)</label>
+          <input
+            id="snackbar-duration"
+            type="number"
+            [(ngModel)]="snackbarDuration"
+            min="1"
+            max="10"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="snackbar-position">Position</label>
+          <select id="snackbar-position" [(ngModel)]="snackbarPosition" class="form-control">
+            <option value="bottom">Bottom</option>
+            <option value="top">Top</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- URL Actions -->
+      <div *ngIf="formData.action_type === 'open_url'" class="parameter-section">
+        <div class="form-group">
+          <label for="url">URL *</label>
+          <input
+            id="url"
+            type="url"
+            [(ngModel)]="formData.url"
+            placeholder="https://example.com"
+            class="form-control"
+            [class.invalid]="validationErrors['url']">
+          <span class="error-message" *ngIf="validationErrors['url']">
+            {{ validationErrors['url'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="openInNewTab">
+            Open in new tab/window
+          </label>
+        </div>
+      </div>
+
+      <!-- Email Actions -->
+      <div *ngIf="formData.action_type === 'send_email'" class="parameter-section">
+        <div class="form-group">
+          <label for="email-to">To *</label>
+          <input
+            id="email-to"
+            type="email"
+            [(ngModel)]="emailData.to"
+            placeholder="recipient@example.com"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="email-subject">Subject</label>
+          <input
+            id="email-subject"
+            type="text"
+            [(ngModel)]="emailData.subject"
+            placeholder="Email subject"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="email-body">Body</label>
+          <textarea
+            id="email-body"
+            [(ngModel)]="emailData.body"
+            placeholder="Email body"
+            rows="4"
+            class="form-control"></textarea>
+        </div>
+      </div>
+
+      <!-- Phone Actions -->
+      <div *ngIf="formData.action_type === 'make_phone_call'" class="parameter-section">
+        <div class="form-group">
+          <label for="phone-number">Phone Number *</label>
+          <input
+            id="phone-number"
+            type="tel"
+            [(ngModel)]="phoneNumber"
+            placeholder="+1234567890"
+            class="form-control">
+        </div>
+      </div>
+
+      <!-- Share Actions -->
+      <div *ngIf="formData.action_type === 'share_content'" class="parameter-section">
+        <div class="form-group">
+          <label for="share-title">Title</label>
+          <input
+            id="share-title"
+            type="text"
+            [(ngModel)]="shareData.title"
+            placeholder="Share title"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="share-text">Text *</label>
+          <textarea
+            id="share-text"
+            [(ngModel)]="shareData.text"
+            placeholder="Content to share"
+            rows="3"
+            class="form-control"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="share-url">URL (Optional)</label>
+          <input
+            id="share-url"
+            type="url"
+            [(ngModel)]="shareData.url"
+            placeholder="https://example.com"
+            class="form-control">
+        </div>
+      </div>
+
+      <!-- Toggle Visibility Actions -->
+      <div *ngIf="formData.action_type === 'toggle_visibility'" class="parameter-section">
+        <div class="form-group">
+          <label for="widget-id">Widget ID *</label>
+          <input
+            id="widget-id"
+            type="text"
+            [(ngModel)]="visibilityWidgetId"
+            placeholder="Enter widget ID to toggle"
+            class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="visibility-action">Action</label>
+          <select id="visibility-action" [(ngModel)]="visibilityAction" class="form-control">
+            <option value="toggle">Toggle</option>
+            <option value="show">Show</option>
+            <option value="hide">Hide</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div *ngIf="['submit_form', 'validate_form', 'clear_form'].includes(formData.action_type)" class="parameter-section">
+        <div class="form-group">
+          <label for="form-id">Form Widget ID *</label>
+          <input
+            id="form-id"
+            type="text"
+            [(ngModel)]="formWidgetId"
+            placeholder="Enter form widget ID"
+            class="form-control">
+        </div>
+
+        <div class="form-group" *ngIf="formData.action_type === 'submit_form'">
+          <label for="submit-endpoint">Submit Endpoint</label>
+          <select id="submit-endpoint" [(ngModel)]="formSubmitEndpoint" class="form-control">
+            <option [value]="null">Select endpoint...</option>
+            <option *ngFor="let ds of dataSources" [value]="ds.id">
+              {{ ds.name }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Data Actions -->
+      <div *ngIf="['save_data', 'load_data'].includes(formData.action_type)" class="parameter-section">
+        <div class="form-group">
+          <label for="data-key">Storage Key *</label>
+          <input
+            id="data-key"
+            type="text"
+            [(ngModel)]="dataStorageKey"
+            placeholder="Enter storage key"
+            class="form-control">
+        </div>
+
+        <div class="form-group" *ngIf="formData.action_type === 'save_data'">
+          <label>Data Source</label>
+          <select [(ngModel)]="dataSource" class="form-control">
+            <option value="widget">Widget Value</option>
+            <option value="api">API Response</option>
+            <option value="custom">Custom Data</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="formData.action_type === 'save_data' && dataSource === 'custom'">
+          <label>Custom Data (JSON)</label>
+          <textarea
+            [(ngModel)]="customData"
+            placeholder='{"key": "value"}'
+            rows="3"
+            class="form-control code-input"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Preview -->
+    <div class="form-section" *ngIf="formData.action_type">
+      <h3 class="section-title">Preview</h3>
+
+      <div class="action-preview">
+        <div class="preview-header">
+          <span class="material-icons" [style.color]="getActionColor()">
+            {{ getActionIcon() }}
+          </span>
+          <h4>{{ formData.name || 'Untitled Action' }}</h4>
+        </div>
+
+        <div class="preview-body">
+          <p class="preview-type">{{ getActionTypeLabel() }}</p>
+
+          <div class="preview-details">
+            <div *ngIf="formData.action_type === 'navigate' && formData.target_screen" class="detail-row">
+              <span class="label">Target:</span>
+              <span class="value">{{ getScreenName(formData.target_screen) }}</span>
+            </div>
+
+            <div *ngIf="formData.action_type === 'api_call' && formData.api_data_source" class="detail-row">
+              <span class="label">Data Source:</span>
+              <span class="value">{{ getDataSourceName(formData.api_data_source) }}</span>
+            </div>
+
+            <div *ngIf="formData.action_type === 'show_dialog' && formData.dialog_title" class="detail-row">
+              <span class="label">Title:</span>
+              <span class="value">{{ formData.dialog_title }}</span>
+            </div>
+
+            <div *ngIf="formData.action_type === 'open_url' && formData.url" class="detail-row">
+              <span class="label">URL:</span>
+              <span class="value">{{ formData.url }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="editor-footer">
+    <button class="btn-secondary" (click)="onCancel()">Cancel</button>
+    <button
+      class="btn-primary"
+      (click)="onSave()"
+      [disabled]="!isValid()">
+      <span class="material-icons">save</span>
+      {{ isEditMode ? 'Save Changes' : 'Create Action' }}
+    </button>
+  </div>
+</div>

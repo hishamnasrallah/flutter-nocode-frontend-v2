@@ -1,0 +1,353 @@
+<!-- src/app/features/data-sources/data-source-list/data-source-list.component.html -->
+
+<div class="data-sources-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Data Sources</h1>
+      <p class="subtitle">Connect your app to APIs, databases, and services</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="importDataSource()">
+        <span class="material-icons">upload_file</span>
+        Import
+      </button>
+      <button class="btn-primary" (click)="createDataSource()">
+        <span class="material-icons">add</span>
+        New Data Source
+      </button>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon rest">
+        <span class="material-icons">api</span>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.rest }}</div>
+        <div class="stat-label">REST APIs</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon graphql">
+        <span class="material-icons">hub</span>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.graphql }}</div>
+        <div class="stat-label">GraphQL</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon firebase">
+        <span class="material-icons">local_fire_department</span>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.firebase }}</div>
+        <div class="stat-label">Firebase</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon connected">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.connected }}</div>
+        <div class="stat-label">Connected</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="material-icons search-icon">search</span>
+      <input
+        type="text"
+        placeholder="Search data sources..."
+        [(ngModel)]="searchQuery"
+        (input)="filterDataSources()">
+    </div>
+
+    <div class="filter-chips">
+      <button
+        class="filter-chip"
+        [class.active]="selectedType === 'all'"
+        (click)="filterByType('all')">
+        All Types
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="selectedType === 'REST_API'"
+        (click)="filterByType('REST_API')">
+        REST API
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="selectedType === 'GRAPHQL'"
+        (click)="filterByType('GRAPHQL')">
+        GraphQL
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="selectedType === 'FIREBASE'"
+        (click)="filterByType('FIREBASE')">
+        Firebase
+      </button>
+      <button
+        class="filter-chip"
+        [class.active]="selectedType === 'SUPABASE'"
+        (click)="filterByType('SUPABASE')">
+        Supabase
+      </button>
+    </div>
+
+    <div class="view-toggle">
+      <button
+        class="view-btn"
+        [class.active]="viewMode === 'grid'"
+        (click)="viewMode = 'grid'">
+        <span class="material-icons">grid_view</span>
+      </button>
+      <button
+        class="view-btn"
+        [class.active]="viewMode === 'list'"
+        (click)="viewMode = 'list'">
+        <span class="material-icons">view_list</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>Loading data sources...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredDataSources.length === 0">
+    <div class="empty-icon">
+      <span class="material-icons">cloud_off</span>
+    </div>
+    <h3>No Data Sources Found</h3>
+    <p>{{ searchQuery ? 'No data sources match your search' : 'Connect your first data source to start building dynamic apps' }}</p>
+    <button class="btn-primary" (click)="createDataSource()" *ngIf="!searchQuery">
+      <span class="material-icons">add</span>
+      Add Data Source
+    </button>
+  </div>
+
+  <!-- Data Sources Grid -->
+  <div class="data-sources-grid" *ngIf="!isLoading && filteredDataSources.length > 0 && viewMode === 'grid'">
+    <div class="data-source-card" *ngFor="let dataSource of filteredDataSources">
+      <!-- Type Badge -->
+      <div class="type-badge" [class]="getTypeClass(dataSource.data_source_type)">
+        <span class="material-icons">{{ getTypeIcon(dataSource.data_source_type) }}</span>
+        {{ getTypeLabel(dataSource.data_source_type) }}
+      </div>
+
+      <!-- Connection Status -->
+      <div
+        class="connection-status"
+        [class.connected]="connectionStatus[dataSource.id] === 'connected'"
+        [class.error]="connectionStatus[dataSource.id] === 'error'"
+        [class.testing]="connectionStatus[dataSource.id] === 'testing'">
+        <span class="material-icons" *ngIf="connectionStatus[dataSource.id] === 'connected'">check_circle</span>
+        <span class="material-icons" *ngIf="connectionStatus[dataSource.id] === 'error'">error</span>
+        <div class="loading-spinner-small" *ngIf="connectionStatus[dataSource.id] === 'testing'"></div>
+        <span>{{ getStatusText(connectionStatus[dataSource.id]) }}</span>
+      </div>
+
+      <!-- Card Content -->
+      <div class="card-header">
+        <h3>{{ dataSource.name }}</h3>
+        <button class="menu-btn" (click)="toggleMenu(dataSource.id)">
+          <span class="material-icons">more_vert</span>
+        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="dropdown-menu" *ngIf="openMenuId === dataSource.id" (clickOutside)="closeMenu()">
+          <button (click)="duplicateDataSource(dataSource)">
+            <span class="material-icons">content_copy</span>
+            Duplicate
+          </button>
+          <button (click)="exportDataSource(dataSource)">
+            <span class="material-icons">download</span>
+            Export
+          </button>
+          <div class="menu-divider"></div>
+          <button class="delete-btn" (click)="deleteDataSource(dataSource)">
+            <span class="material-icons">delete</span>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <!-- URL Info -->
+        <div class="info-row">
+          <span class="info-label">Base URL:</span>
+          <span class="info-value">{{ dataSource.base_url }}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Endpoint:</span>
+          <span class="info-value">{{ dataSource.endpoint }}</span>
+        </div>
+
+        <!-- Method Badge -->
+        <div class="method-badge" [style.background-color]="getMethodColor(dataSource.method)">
+          {{ dataSource.method }}
+        </div>
+
+        <!-- Fields Count -->
+        <div class="fields-info" *ngIf="dataSource.fields && dataSource.fields.length > 0">
+          <span class="material-icons">schema</span>
+          {{ dataSource.fields.length }} field{{ dataSource.fields.length !== 1 ? 's' : '' }} mapped
+        </div>
+
+        <!-- Dynamic URL Indicator -->
+        <div class="dynamic-url-indicator" *ngIf="dataSource.use_dynamic_base_url">
+          <span class="material-icons">link</span>
+          Dynamic URL
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <button class="action-btn" (click)="testConnection(dataSource)" [disabled]="connectionStatus[dataSource.id] === 'testing'">
+          <span class="material-icons">network_check</span>
+          Test
+        </button>
+        <button class="action-btn" (click)="editDataSource(dataSource)">
+          <span class="material-icons">edit</span>
+          Edit
+        </button>
+        <button class="action-btn primary" (click)="configureFields(dataSource)">
+          <span class="material-icons">tune</span>
+          Fields
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Sources List View -->
+  <div class="data-sources-list" *ngIf="!isLoading && filteredDataSources.length > 0 && viewMode === 'list'">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Status</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Base URL</th>
+          <th>Endpoint</th>
+          <th>Method</th>
+          <th>Fields</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let dataSource of filteredDataSources">
+          <td>
+            <div
+              class="status-indicator"
+              [class.connected]="connectionStatus[dataSource.id] === 'connected'"
+              [class.error]="connectionStatus[dataSource.id] === 'error'"
+              [class.testing]="connectionStatus[dataSource.id] === 'testing'"
+              [title]="getStatusText(connectionStatus[dataSource.id])">
+            </div>
+          </td>
+          <td class="name-cell">
+            <strong>{{ dataSource.name }}</strong>
+          </td>
+          <td>
+            <span class="type-label" [class]="getTypeClass(dataSource.data_source_type)">
+              {{ getTypeLabel(dataSource.data_source_type) }}
+            </span>
+          </td>
+          <td class="url-cell">{{ dataSource.base_url }}</td>
+          <td class="endpoint-cell">{{ dataSource.endpoint }}</td>
+          <td>
+            <span class="method-label" [style.color]="getMethodColor(dataSource.method)">
+              {{ dataSource.method }}
+            </span>
+          </td>
+          <td>{{ dataSource.fields?.length || 0 }}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="icon-btn" (click)="testConnection(dataSource)" title="Test Connection">
+                <span class="material-icons">network_check</span>
+              </button>
+              <button class="icon-btn" (click)="editDataSource(dataSource)" title="Edit">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="icon-btn" (click)="configureFields(dataSource)" title="Configure Fields">
+                <span class="material-icons">tune</span>
+              </button>
+              <button class="icon-btn danger" (click)="deleteDataSource(dataSource)" title="Delete">
+                <span class="material-icons">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Import Dialog -->
+  <div class="dialog-overlay" *ngIf="showImportDialog" (click)="closeImportDialog()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>Import Data Source</h2>
+        <button class="close-btn" (click)="closeImportDialog()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <div class="import-options">
+          <div class="import-option" (click)="selectImportType('postman')">
+            <img src="assets/icons/postman.svg" alt="Postman">
+            <h3>Postman Collection</h3>
+            <p>Import from Postman JSON file</p>
+          </div>
+
+          <div class="import-option" (click)="selectImportType('swagger')">
+            <img src="assets/icons/swagger.svg" alt="Swagger">
+            <h3>OpenAPI/Swagger</h3>
+            <p>Import from OpenAPI specification</p>
+          </div>
+
+          <div class="import-option" (click)="selectImportType('curl')">
+            <span class="material-icons large">terminal</span>
+            <h3>cURL Command</h3>
+            <p>Convert cURL to data source</p>
+          </div>
+        </div>
+
+        <div class="import-input" *ngIf="selectedImportType">
+          <label>{{ getImportLabel() }}</label>
+          <textarea
+            *ngIf="selectedImportType === 'curl'"
+            [(ngModel)]="importData"
+            placeholder="Paste your cURL command here..."
+            rows="5">
+          </textarea>
+          <input
+            *ngIf="selectedImportType !== 'curl'"
+            type="file"
+            (change)="onFileSelected($event)"
+            [accept]="selectedImportType === 'postman' ? '.json' : '.json,.yaml,.yml'">
+        </div>
+      </div>
+
+      <div class="dialog-actions">
+        <button class="btn-secondary" (click)="closeImportDialog()">Cancel</button>
+        <button class="btn-primary" (click)="performImport()" [disabled]="!importData">
+          Import
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

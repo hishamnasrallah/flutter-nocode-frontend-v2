@@ -1,0 +1,258 @@
+<!-- src/app/features/actions/action-list/action-list.component.html -->
+
+<div class="action-list-container">
+  <!-- Header -->
+  <div class="action-header">
+    <div class="header-content">
+      <h2 class="page-title">
+        <span class="material-icons">bolt</span>
+        Actions
+      </h2>
+      <p class="page-subtitle">Define and manage actions for your widgets</p>
+    </div>
+    <button class="btn-primary" (click)="openActionEditor(null)">
+      <span class="material-icons">add</span>
+      Add Action
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-section">
+    <div class="search-bar">
+      <span class="material-icons search-icon">search</span>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="filterActions()"
+        placeholder="Search actions by name or type..."
+        class="search-input">
+      <button
+        *ngIf="searchQuery"
+        class="clear-search"
+        (click)="clearSearch()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="filter-pills">
+      <button
+        class="filter-pill"
+        [class.active]="selectedCategory === 'all'"
+        (click)="filterByCategory('all')">
+        All
+        <span class="count">{{ getTotalActionsCount() }}</span>
+      </button>
+      <button
+        *ngFor="let category of actionCategories"
+        class="filter-pill"
+        [class.active]="selectedCategory === category.name"
+        (click)="filterByCategory(category.name)">
+        <span class="material-icons">{{ category.icon }}</span>
+        {{ category.name }}
+        <span class="count">{{ getCategoryCount(category.name) }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Actions List -->
+  <div class="actions-content" *ngIf="!isLoading">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredActions.length === 0 && !searchQuery">
+      <div class="empty-state-illustration">
+        <span class="material-icons">touch_app</span>
+      </div>
+      <h3>No actions yet</h3>
+      <p>Create your first action to add interactivity to your app</p>
+      <button class="btn-primary" (click)="openActionEditor(null)">
+        <span class="material-icons">add</span>
+        Create Action
+      </button>
+    </div>
+
+    <!-- No Results -->
+    <div class="no-results" *ngIf="filteredActions.length === 0 && searchQuery">
+      <span class="material-icons">search_off</span>
+      <h3>No actions found</h3>
+      <p>Try adjusting your search or filters</p>
+      <button class="btn-text" (click)="clearSearch()">Clear search</button>
+    </div>
+
+    <!-- Actions Grid -->
+    <div class="actions-grid" *ngIf="filteredActions.length > 0">
+      <div *ngFor="let categoryGroup of groupedActions | keyvalue" class="category-section">
+        <div class="category-header">
+          <span class="material-icons">{{ getCategoryIcon(categoryGroup.key) }}</span>
+          <h3>{{ categoryGroup.key }}</h3>
+          <span class="category-count">{{ categoryGroup.value.length }}</span>
+        </div>
+
+        <div class="actions-row">
+          <div
+            *ngFor="let action of categoryGroup.value"
+            class="action-card"
+            [class.selected]="selectedAction?.id === action.id"
+            (click)="selectAction(action)">
+
+            <!-- Action Card Header -->
+            <div class="action-card-header">
+              <div class="action-icon" [style.background-color]="getActionColor(action.action_type)">
+                <span class="material-icons">{{ getActionIcon(action.action_type) }}</span>
+              </div>
+              <div class="action-menu">
+                <button class="menu-btn" (click)="toggleActionMenu($event, action)">
+                  <span class="material-icons">more_vert</span>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="dropdown-menu" *ngIf="actionMenuOpen === action.id" (clickOutside)="closeActionMenu()">
+                  <button (click)="editAction(action)">
+                    <span class="material-icons">edit</span>
+                    Edit
+                  </button>
+                  <button (click)="duplicateAction(action)">
+                    <span class="material-icons">content_copy</span>
+                    Duplicate
+                  </button>
+                  <button (click)="testAction(action)">
+                    <span class="material-icons">play_arrow</span>
+                    Test
+                  </button>
+                  <div class="menu-divider"></div>
+                  <button class="danger" (click)="deleteAction(action)">
+                    <span class="material-icons">delete</span>
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Card Body -->
+            <div class="action-card-body">
+              <h4 class="action-name">{{ action.name }}</h4>
+              <p class="action-type">{{ getActionTypeLabel(action.action_type) }}</p>
+
+              <!-- Action Details -->
+              <div class="action-details">
+                <!-- Navigation Actions -->
+                <div *ngIf="action.action_type === 'navigate' && action.target_screen" class="detail-item">
+                  <span class="material-icons">navigation</span>
+                  <span>{{ getScreenName(action.target_screen) }}</span>
+                </div>
+
+                <!-- API Actions -->
+                <div *ngIf="action.action_type === 'api_call' && action.api_data_source" class="detail-item">
+                  <span class="material-icons">cloud</span>
+                  <span>{{ getDataSourceName(action.api_data_source) }}</span>
+                </div>
+
+                <!-- Dialog Actions -->
+                <div *ngIf="action.action_type === 'show_dialog' && action.dialog_title" class="detail-item">
+                  <span class="material-icons">message</span>
+                  <span>{{ action.dialog_title }}</span>
+                </div>
+
+                <!-- URL Actions -->
+                <div *ngIf="action.action_type === 'open_url' && action.url" class="detail-item">
+                  <span class="material-icons">link</span>
+                  <span class="url-text">{{ action.url }}</span>
+                </div>
+
+                <!-- Email Actions -->
+                <div *ngIf="action.action_type === 'send_email' && action.parameters" class="detail-item">
+                  <span class="material-icons">email</span>
+                  <span>{{ getEmailRecipient(action.parameters) }}</span>
+                </div>
+              </div>
+
+              <!-- Action Tags -->
+              <div class="action-tags">
+                <span class="tag" *ngIf="isActionUsed(action)">
+                  <span class="material-icons">check_circle</span>
+                  In Use
+                </span>
+                <span class="tag warning" *ngIf="hasValidationErrors(action)">
+                  <span class="material-icons">warning</span>
+                  Needs Configuration
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Card Footer -->
+            <div class="action-card-footer">
+              <button class="btn-text" (click)="editAction(action); $event.stopPropagation()">
+                <span class="material-icons">edit</span>
+                Edit
+              </button>
+              <button class="btn-text danger" (click)="deleteAction(action); $event.stopPropagation()">
+                <span class="material-icons">delete</span>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading actions...</p>
+  </div>
+
+  <!-- Action Editor Dialog -->
+  <div class="dialog-overlay" *ngIf="showEditor" (click)="closeEditor()">
+    <div class="dialog-container" (click)="$event.stopPropagation()">
+      <app-action-editor
+        [action]="editingAction"
+        [application]="currentApplication"
+        [screens]="screens"
+        [dataSources]="dataSources"
+        (save)="onActionSave($event)"
+        (cancel)="closeEditor()">
+      </app-action-editor>
+    </div>
+  </div>
+
+  <!-- Test Action Dialog -->
+  <div class="dialog-overlay" *ngIf="showTestDialog">
+    <div class="test-dialog" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h3>Test Action</h3>
+        <button class="close-btn" (click)="closeTestDialog()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        <p>Testing: <strong>{{ testingAction?.name }}</strong></p>
+        <div class="test-preview">
+          <!-- Preview based on action type -->
+          <div *ngIf="testingAction?.action_type === 'show_dialog'" class="preview-dialog">
+            <h4>{{ testingAction.dialog_title }}</h4>
+            <p>{{ testingAction.dialog_message }}</p>
+            <button class="btn-primary">OK</button>
+          </div>
+
+          <div *ngIf="testingAction?.action_type === 'show_snackbar'" class="preview-snackbar">
+            {{ testingAction.dialog_message }}
+          </div>
+
+          <div *ngIf="testingAction?.action_type === 'navigate'" class="preview-navigation">
+            <span class="material-icons">navigation</span>
+            Navigate to: {{ getScreenName(testingAction.target_screen!) }}
+          </div>
+        </div>
+      </div>
+
+      <div class="dialog-footer">
+        <button class="btn-text" (click)="closeTestDialog()">Close</button>
+        <button class="btn-primary" (click)="executeTest()">
+          <span class="material-icons">play_arrow</span>
+          Run Test
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

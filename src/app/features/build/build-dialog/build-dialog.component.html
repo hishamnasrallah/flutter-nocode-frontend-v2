@@ -1,0 +1,267 @@
+<!-- src/app/features/build/build-dialog/build-dialog.component.html -->
+
+<div class="build-dialog-overlay" (click)="onClose()">
+  <div class="build-dialog" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="dialog-header">
+      <h2>Build Application</h2>
+      <button class="close-btn" (click)="onClose()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+
+    <!-- Build Status (shown when building) -->
+    <div class="build-status" *ngIf="isBuilding">
+      <div class="status-icon" [ngClass]="getStatusClass()">
+        <span class="material-icons spinning" *ngIf="buildStatus === 'building'">sync</span>
+        <span class="material-icons" *ngIf="buildStatus === 'success'">check_circle</span>
+        <span class="material-icons" *ngIf="buildStatus === 'failed'">error</span>
+      </div>
+
+      <div class="status-info">
+        <h3>{{ getStatusTitle() }}</h3>
+        <p class="status-message">{{ currentStatusMessage }}</p>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar" *ngIf="buildStatus === 'building'">
+          <div class="progress-fill" [style.width.%]="buildProgress"></div>
+        </div>
+
+        <!-- Build Timer -->
+        <div class="build-timer" *ngIf="buildStartTime">
+          <span class="material-icons">schedule</span>
+          <span>{{ formatBuildDuration() }}</span>
+        </div>
+      </div>
+
+      <!-- Build Log -->
+      <div class="build-log" *ngIf="showBuildLog">
+        <div class="log-header">
+          <span>Build Output</span>
+          <button class="toggle-log" (click)="toggleLogExpanded()">
+            <span class="material-icons">{{ logExpanded ? 'expand_less' : 'expand_more' }}</span>
+          </button>
+        </div>
+        <div class="log-content" [class.expanded]="logExpanded" #logContent>
+          <div class="log-entry" *ngFor="let entry of buildLogEntries" [ngClass]="'log-' + entry.level">
+            <span class="log-time">{{ formatLogTime(entry.timestamp) }}</span>
+            <span class="log-message">{{ entry.message }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions for completed build -->
+      <div class="build-actions" *ngIf="buildStatus === 'success'">
+        <button class="btn btn-primary" (click)="downloadApk()">
+          <span class="material-icons">download</span>
+          Download APK
+        </button>
+        <button class="btn btn-secondary" (click)="downloadSourceCode()">
+          <span class="material-icons">code</span>
+          Download Source
+        </button>
+        <button class="btn btn-secondary" (click)="viewInHistory()">
+          <span class="material-icons">history</span>
+          View in History
+        </button>
+      </div>
+    </div>
+
+    <!-- Build Configuration (shown when not building) -->
+    <div class="build-configuration" *ngIf="!isBuilding">
+      <form [formGroup]="buildForm">
+        <!-- Build Type -->
+        <div class="form-section">
+          <h3>Build Configuration</h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Build Type</label>
+              <div class="radio-group">
+                <label class="radio-option">
+                  <input type="radio" formControlName="buildType" value="debug">
+                  <span class="radio-label">
+                    <span class="radio-icon">🐛</span>
+                    <span class="radio-text">
+                      <strong>Debug</strong>
+                      <small>For testing and development</small>
+                    </span>
+                  </span>
+                </label>
+                <label class="radio-option">
+                  <input type="radio" formControlName="buildType" value="release">
+                  <span class="radio-label">
+                    <span class="radio-icon">🚀</span>
+                    <span class="radio-text">
+                      <strong>Release</strong>
+                      <small>Optimized for production</small>
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Platform -->
+          <div class="form-row">
+            <div class="form-group">
+              <label>Target Platform</label>
+              <div class="platform-selector">
+                <button type="button"
+                        class="platform-option"
+                        [class.selected]="buildForm.get('platform')?.value === 'android'"
+                        (click)="selectPlatform('android')">
+                  <span class="material-icons">android</span>
+                  <span>Android</span>
+                </button>
+                <button type="button"
+                        class="platform-option"
+                        [class.selected]="buildForm.get('platform')?.value === 'ios'"
+                        [class.disabled]="!iosAvailable"
+                        (click)="selectPlatform('ios')">
+                  <span class="material-icons">phone_iphone</span>
+                  <span>iOS</span>
+                  <span class="badge" *ngIf="!iosAvailable">Coming Soon</span>
+                </button>
+                <button type="button"
+                        class="platform-option"
+                        [class.selected]="buildForm.get('platform')?.value === 'both'"
+                        [class.disabled]="!iosAvailable"
+                        (click)="selectPlatform('both')">
+                  <span class="material-icons">devices</span>
+                  <span>Both</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Version Configuration -->
+          <div class="form-row">
+            <div class="form-group half">
+              <label for="versionName">Version Name</label>
+              <input type="text"
+                     id="versionName"
+                     formControlName="versionName"
+                     placeholder="e.g., 1.0.0"
+                     class="form-control">
+              <small class="form-hint">User-visible version string</small>
+            </div>
+            <div class="form-group half">
+              <label for="versionCode">Version Code</label>
+              <input type="number"
+                     id="versionCode"
+                     formControlName="versionCode"
+                     placeholder="e.g., 1"
+                     class="form-control">
+              <small class="form-hint">Internal version number</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="form-section">
+          <h3 (click)="toggleAdvancedOptions()">
+            Advanced Options
+            <span class="material-icons">{{ showAdvancedOptions ? 'expand_less' : 'expand_more' }}</span>
+          </h3>
+
+          <div class="advanced-options" *ngIf="showAdvancedOptions">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="cleanBuild">
+                <span>Clean build (rebuild from scratch)</span>
+              </label>
+              <small class="form-hint">Takes longer but ensures a fresh build</small>
+            </div>
+
+            <div class="form-group" *ngIf="buildForm.get('buildType')?.value === 'release'">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="obfuscate">
+                <span>Code obfuscation</span>
+              </label>
+              <small class="form-hint">Makes reverse engineering harder</small>
+            </div>
+
+            <div class="form-group" *ngIf="buildForm.get('platform')?.value === 'android'">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="splitPerAbi">
+                <span>Split APKs per ABI</span>
+              </label>
+              <small class="form-hint">Creates smaller APKs for each architecture</small>
+            </div>
+
+            <div class="form-row" *ngIf="buildForm.get('platform')?.value === 'android'">
+              <div class="form-group half">
+                <label for="minSdk">Minimum SDK</label>
+                <input type="number"
+                       id="minSdk"
+                       formControlName="minSdk"
+                       placeholder="21"
+                       class="form-control">
+              </div>
+              <div class="form-group half">
+                <label for="targetSdk">Target SDK</label>
+                <input type="number"
+                       id="targetSdk"
+                       formControlName="targetSdk"
+                       placeholder="33"
+                       class="form-control">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Build Requirements Checklist -->
+        <div class="form-section">
+          <h3>Build Requirements</h3>
+          <div class="requirements-checklist">
+            <div class="requirement" [class.met]="requirement.met" *ngFor="let requirement of buildRequirements">
+              <span class="material-icons">{{ requirement.met ? 'check_circle' : 'radio_button_unchecked' }}</span>
+              <span class="requirement-text">
+                <strong>{{ requirement.label }}</strong>
+                <small>{{ requirement.description }}</small>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estimated Build Time -->
+        <div class="build-estimate">
+          <span class="material-icons">schedule</span>
+          <span>Estimated build time: <strong>{{ getEstimatedBuildTime() }}</strong></span>
+        </div>
+      </form>
+    </div>
+
+    <!-- Dialog Footer -->
+    <div class="dialog-footer">
+      <button class="btn btn-secondary"
+              (click)="onClose()"
+              [disabled]="isBuilding && buildStatus === 'building'">
+        {{ isBuilding ? 'Close' : 'Cancel' }}
+      </button>
+
+      <button class="btn btn-primary"
+              (click)="startBuild()"
+              *ngIf="!isBuilding"
+              [disabled]="buildForm.invalid || !canStartBuild()">
+        <span class="material-icons">build</span>
+        Start Build
+      </button>
+
+      <button class="btn btn-danger"
+              (click)="cancelBuild()"
+              *ngIf="isBuilding && buildStatus === 'building'">
+        <span class="material-icons">stop</span>
+        Cancel Build
+      </button>
+
+      <button class="btn btn-primary"
+              (click)="startNewBuild()"
+              *ngIf="isBuilding && (buildStatus === 'success' || buildStatus === 'failed')">
+        <span class="material-icons">refresh</span>
+        New Build
+      </button>
+    </div>
+  </div>
+</div>
