@@ -13,7 +13,8 @@ import {
   DataSourceField,
   TestConnectionResponse,
   CreateDataSourceRequest,
-  UpdateDataSourceRequest
+  UpdateDataSourceRequest,
+  FieldType // Added FieldType import
 } from '../../../core/models/data-source.model';
 
 interface Header {

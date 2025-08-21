@@ -104,16 +104,19 @@
               </div>
             </div>
             <div class="theme-mockup" [style.background-color]="theme.background_color">
-              <div class="mockup-appbar" [style.background-color]="theme.primary_color">
-                <span [style.color]="getContrastColor(theme.primary_color)">App Title</span>
+                            <div class="mockup-appbar" [style.background-color]="theme.primary_color">
+                <span [style.color]="getContrastColor(theme.primary_color ?? '#000000')">App Title</span>
               </div>
+
               <div class="mockup-content">
                 <div class="mockup-text" [style.color]="theme.text_color">
                   Lorem ipsum dolor sit amet
                 </div>
-                <div class="mockup-button" [style.background-color]="theme.accent_color">
-                  <span [style.color]="getContrastColor(theme.accent_color)">Button</span>
-                </div>
+                            <div class="mockup-button" [style.background-color]="theme.accent_color">
+                              <span [style.color]="getContrastColor(theme.accent_color ?? '#000000')">Button</span>
+
+            </div>
+
               </div>
             </div>
           </div>
@@ -199,15 +202,15 @@
             <!-- Mini Preview -->
             <div class="theme-mockup" [style.background-color]="theme.background_color">
               <div class="mockup-appbar" [style.background-color]="theme.primary_color">
-                <span [style.color]="getContrastColor(theme.primary_color)">App Title</span>
-              </div>
+                <span [style.color]="getContrastColor(theme.primary_color)">App Title</span>              </div>
               <div class="mockup-content">
                 <div class="mockup-text" [style.color]="theme.text_color">
                   Lorem ipsum dolor sit amet
                 </div>
                 <div class="mockup-button" [style.background-color]="theme.accent_color">
-                  <span [style.color]="getContrastColor(theme.accent_color ?? '#000000')">Button</span>
-                </div>
+              <span [style.color]="getContrastColor(theme.accent_color ?? '#000000')">Button</span>
+            </div>
+
               </div>
             </div>
 

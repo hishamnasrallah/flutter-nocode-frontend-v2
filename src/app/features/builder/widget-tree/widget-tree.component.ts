@@ -1,5 +1,3 @@
-// src/app/features/builder/widget-tree/widget-tree.component.ts
-
 import {Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, HostListener} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormsModule} from '@angular/forms';
@@ -7,6 +5,7 @@ import {DraggableDirective} from '../../../core/directives/draggable.directive';
 import {DroppableDirective} from '../../../core/directives/droppable.directive';
 import {Widget, WidgetType, CONTAINER_WIDGETS} from '../../../core/models/widget.model';
 import {TreeBuilder} from '../../../core/utils/tree-builder';
+import { NotificationService } from '../../../core/services/notification.service'; // Import NotificationService
 
 export interface TreeNode {
   widget: Widget;
@@ -46,6 +45,10 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
 
   // Clipboard
   private clipboardWidget: Widget | null = null;
+
+  constructor(
+    private notificationService: NotificationService // Inject NotificationService here
+  ) {}
 
   ngOnInit(): void {
     this.buildTree();
@@ -137,12 +140,21 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   onNodeDrop(event: any, targetNode: TreeNode): void {
-    const sourceWidget = event.widget;
+    const sourceWidget = event.widget; // This is the widget being dragged
+    const newParentId = targetNode.widget.id; // The ID of the widget being dropped onto
+    const newIndex = event.targetIndex; // The calculated index within the target
+
     if (sourceWidget && this.canAcceptChildren(targetNode.widget.widget_type)) {
+      // Prevent dropping a widget onto itself or its own descendant
+      if (sourceWidget.id === newParentId || TreeBuilder.isDescendant(newParentId, sourceWidget.id, this.widgets)) {
+        this.notificationService.warning('Cannot drop widget into itself or its own descendant.');
+        return;
+      }
+
       this.widgetReordered.emit({
-        widget: widget,
-        newParent: widget.parent_widget as number | null,
-        newIndex: currentIndex - 1
+        widget: sourceWidget,
+        newParent: newParentId,
+        newIndex: newIndex
       });
     }
   }
@@ -271,8 +283,8 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
     if (currentIndex > 0) {
       this.widgetReordered.emit({
         widget: widget,
-        newParent: widget.parent_widget as number | null,
-        newIndex: currentIndex + 1
+        newParent: widget.parent_widget ?? null,
+        newIndex: currentIndex - 1
       });
     }
   }
@@ -284,7 +296,7 @@ export class WidgetTreeComponent implements OnInit, OnChanges, OnDestroy {
     if (currentIndex < siblings.length - 1) {
       this.widgetReordered.emit({
         widget: widget,
-        newParent: widget.parent_widget,
+        newParent: widget.parent_widget ?? null,
         newIndex: currentIndex + 1
       });
     }

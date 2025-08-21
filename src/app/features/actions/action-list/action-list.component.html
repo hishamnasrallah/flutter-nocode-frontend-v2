@@ -134,11 +134,13 @@
 
               <!-- Action Details -->
               <div class="action-details">
-                <!-- Navigation Actions -->
+                                <!-- Navigation Actions -->
                 <div *ngIf="action.action_type === 'navigate' && action.target_screen" class="detail-item">
                   <span class="material-icons">navigation</span>
-                  <span>{{ getScreenName(action.target_screen) }}</span>
+                  <span>{{ getScreenName(action.target_screen!) }}</span>
                 </div>
+
+
 
                 <!-- API Actions -->
                 <div *ngIf="action.action_type === 'api_call' && action.api_data_source" class="detail-item">
@@ -239,7 +241,7 @@
             {{ testingAction?.dialog_message }}
           </div>
 
-          <div *ngIf="testingAction?.action_type === 'navigate'" class="preview-navigation">
+                    <div *ngIf="testingAction?.action_type === 'navigate'" class="preview-navigation">
             <span class="material-icons">navigation</span>
             Navigate to: {{ testingAction?.target_screen ? getScreenName(testingAction.target_screen) : '' }}
           </div>

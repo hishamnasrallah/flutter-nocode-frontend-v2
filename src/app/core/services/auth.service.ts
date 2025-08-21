@@ -185,11 +185,12 @@ export class AuthService {
       map(() => true),
       catchError(() => {
         this.clearAuthData();
-        return new Observable(observer => {
+        return new Observable<boolean>(observer => { // Explicitly type the Observable
           observer.next(false);
           observer.complete();
         });
       })
     );
+
   }
 }

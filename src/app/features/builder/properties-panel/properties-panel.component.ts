@@ -1,12 +1,10 @@
-// src/app/features/builder/properties-panel/properties-panel.component.ts
-
 import { Component, Input, OnChanges, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { Widget } from '../../../core/models/widget.model';
 import { PropertyService } from '../../../core/services/property.service';
-import { WidgetProperty, PropertyType } from '../../../core/models/property.model';
+import { WidgetProperty, PropertyType, PropertyDefinition } from '../../../core/models/property.model';
 
 interface PropertyGroup {
   name: string;
@@ -164,42 +162,64 @@ export class PropertiesPanelComponent implements OnChanges {
     // Get properties for this widget
     const widgetProperties = this.widget.properties || [];
 
-    // Get default groups for widget type
-    const defaultGroups = this.propertyDefinitions[this.widget.widget_type] || [
-      { name: 'Properties', properties: [] }
-    ];
+    // Get the predefined property groups and their definitions for the current widget type
+    const widgetTypePropertyGroups = this.propertyService.getPropertyDefinitions(this.widget.widget_type);
 
-    // Group properties by category
-    const groupedProps = new Map<string, WidgetProperty[]>();
+    // Flatten all PropertyDefinition objects from all groups into a single array for easier lookup
+    const allPropertyDefinitions: PropertyDefinition[] = [];
+    widgetTypePropertyGroups.forEach(group => {
+      allPropertyDefinitions.push(...group.properties);
+    });
 
-    const propertyDefinitions = this.propertyService.getPropertyDefinitions(this.widget.widget_type);
+    // Create a temporary map to hold properties grouped by their category
+    const groupedPropsMap = new Map<string, WidgetProperty[]>();
 
+    // Iterate through the widget's actual properties
     widgetProperties.forEach(prop => {
-      const category = this.getPropertyCategory(prop);
-      const definition = propertyDefinitions.find(def => def.name === prop.property_name);
+      const category = this.getPropertyCategory(prop); // Determine the category for this property
+      // Find the corresponding PropertyDefinition to get its 'label'
+      const definition = allPropertyDefinitions.find(def => def.name === prop.property_name);
 
-      if (!groupedProps.has(category)) {
-        groupedProps.set(category, []);
+      if (!groupedPropsMap.has(category)) {
+        groupedPropsMap.set(category, []);
       }
 
-      groupedProps.get(category)!.push({
+      // Add the property to its group, setting its display_name from the definition's label or fallback
+      groupedPropsMap.get(category)!.push({
         ...prop,
         display_name: definition?.label || prop.property_name
       });
     });
 
-    // Create property groups
-    this.propertyGroups = Array.from(groupedProps.entries()).map(([name, properties]) => ({
-      name,
-      properties: properties.sort((a, b) => a.property_name.localeCompare(b.property_name))
-    }));
-
-    // Ensure default groups exist even if empty
-    defaultGroups.forEach(group => {
-      if (!this.propertyGroups.find(g => g.name === group.name)) {
-        this.propertyGroups.push({ name: group.name, properties: [] });
-      }
+    // Reconstruct the final propertyGroups array for the template
+    this.propertyGroups = widgetTypePropertyGroups.map(group => {
+      const propertiesInThisGroup = groupedPropsMap.get(group.name) || [];
+      return {
+        name: group.name,
+        properties: propertiesInThisGroup.sort((a, b) => a.property_name.localeCompare(b.property_name)),
+        // Assuming 'expanded' is a property you might want to add to your PropertyGroup interface
+        // expanded: this.expandedGroups.has(group.name) // Maintain expanded state
+      };
     });
+
+    // Handle any properties that might not have a predefined category (e.g., custom properties)
+    const unassignedProperties = widgetProperties.filter(prop => {
+      const category = this.getPropertyCategory(prop);
+      return !widgetTypePropertyGroups.some(group => group.name === category);
+    });
+
+    if (unassignedProperties.length > 0) {
+      let otherGroup = this.propertyGroups.find(g => g.name === 'Other'); // Use 'Other' or 'General'
+      if (!otherGroup) {
+        otherGroup = { name: 'Other', properties: [] }; // Initialize with empty properties
+        this.propertyGroups.push(otherGroup);
+      }
+      otherGroup.properties.push(...unassignedProperties.map(prop => ({
+        ...prop,
+        display_name: prop.property_name // Fallback display name for unassigned
+      })));
+      otherGroup.properties.sort((a, b) => a.property_name.localeCompare(b.property_name));
+    }
   }
 
   private getPropertyCategory(property: WidgetProperty): string {

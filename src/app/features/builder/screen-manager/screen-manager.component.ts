@@ -196,10 +196,17 @@ export class ScreenManagerComponent implements OnInit, OnDestroy {
           this.notificationService.success('Screen updated successfully');
           this.editingScreen = null;
 
-          // If setting as home screen, update others
-          if (formValue.is_home_screen && this.editingScreen && !this.editingScreen.is_home_screen) {
-            this.setAsHome(screen);
+                    // If setting as home screen, update others
+          if (formValue.is_home_screen && this.editingScreen) {
+            // Explicitly assert the type of editingScreen to help TypeScript
+            const currentEditingScreen: Screen = this.editingScreen;
+            if (!currentEditingScreen.is_home_screen) {
+              this.setAsHome(screen);
+            }
           }
+
+
+
         },
         error: (error) => {
           console.error('Failed to update screen:', error);

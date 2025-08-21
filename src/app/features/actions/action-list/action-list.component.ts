@@ -10,11 +10,12 @@ import { ApplicationService } from '../../../core/services/application.service';
 import { ScreenService } from '../../../core/services/screen.service';
 import { DataSourceService } from '../../../core/services/data-source.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { Action, ActionType, ActionTypeInfo } from '../../../core/models/action.model';
+import {Action, ActionType, ActionTypeInfo, CreateActionRequest} from '../../../core/models/action.model';
 import { Application } from '../../../core/models/application.model';
 import { Screen } from '../../../core/models/screen.model';
 import { DataSource } from '../../../core/models/data-source.model';
 import { ActionEditorComponent } from '../action-editor/action-editor.component';
+import { ClickOutsideDirective } from '../../../../app/core/directives/click-outside.directive';
 
 interface ActionCategory {
   name: string;
@@ -344,14 +345,16 @@ export class ActionListComponent implements OnInit, OnDestroy {
   onActionSave(action: Partial<Action>): void {
     if (!this.currentApplication) return;
 
-    const actionData = {
+        const actionData = {
       ...action,
+      name: action.name || '', // Ensure name is always a string
       application: this.currentApplication.id
     };
 
     const request = this.editingAction
       ? this.actionService.updateAction(this.editingAction.id, actionData)
-      : this.actionService.createAction(actionData);
+      : this.actionService.createAction(actionData as CreateActionRequest); // Cast to CreateActionRequest
+
 
     request.pipe(takeUntil(this.destroy$)).subscribe({
       next: (savedAction) => {
