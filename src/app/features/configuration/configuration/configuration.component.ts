@@ -36,23 +36,21 @@ export class ConfigurationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Check if already configured
-    this.isConfigured = this.configService.isConfigured();
+  // Check if already configured
+  this.isConfigured = this.configService.isConfigured();
 
-    if (this.isConfigured) {
-      const currentUrl = this.configService.getBackendUrl();
-      this.configForm.patchValue({ backendUrl: currentUrl });
-      this.lastTestedUrl = currentUrl;
+  if (this.isConfigured) {
+    const currentUrl = this.configService.getBackendUrl();
+    this.configForm.patchValue({ backendUrl: currentUrl });
+    this.lastTestedUrl = currentUrl;
 
-      // Auto-redirect to login if configured
-      setTimeout(() => {
-        this.router.navigate(['/login']);
-      }, 1000);
-    } else {
-      // Set default URL
-      this.configForm.patchValue({ backendUrl: this.defaultUrl });
-    }
+    // REMOVED auto-redirect - let user stay on configuration page
+    // Users can manually click "Continue to Login" or change configuration
+  } else {
+    // Set default URL
+    this.configForm.patchValue({ backendUrl: this.defaultUrl });
   }
+}
 
   async testConnection(): Promise<void> {
     if (this.configForm.invalid) {
@@ -89,34 +87,32 @@ export class ConfigurationComponent implements OnInit {
   }
 
   async saveConfiguration(): Promise<void> {
-    if (this.configForm.invalid) {
-      this.notificationService.error('Please enter a valid URL');
+  if (this.configForm.invalid) {
+    this.notificationService.error('Please enter a valid URL');
+    return;
+  }
+
+  const url = this.configForm.value.backendUrl;
+
+  // Test connection first if not already tested
+  if (url !== this.lastTestedUrl) {
+    await this.testConnection();
+
+    if (!this.testSuccess) {
+      this.notificationService.warning('Connection test failed. Please test the connection before saving.');
       return;
     }
-
-    const url = this.configForm.value.backendUrl;
-
-    // Test connection first if not already tested
-    if (url !== this.lastTestedUrl) {
-      await this.testConnection();
-
-      if (!this.testSuccess) {
-        this.notificationService.warning('Connection test failed. Please test the connection before saving.');
-        return;
-      }
-    }
-
-    // Save configuration
-    this.configService.setBackendUrl(url);
-    this.isConfigured = true;
-
-    this.notificationService.success('Configuration saved successfully!');
-
-    // Redirect to login
-    setTimeout(() => {
-      this.router.navigate(['/login']);
-    }, 500);
   }
+
+  // Save configuration
+  this.configService.setBackendUrl(url);
+  this.isConfigured = true;
+
+  this.notificationService.success('Configuration saved successfully!');
+
+  // Navigate to login immediately (no delay)
+  this.router.navigate(['/login']);
+}
 
   skipConfiguration(): void {
     // Use default URL
@@ -155,5 +151,10 @@ export class ConfigurationComponent implements OnInit {
       return 'Please enter a valid URL (http:// or https://)';
     }
     return '';
+  }
+
+  continueToLogin(): void {
+    // Just navigate to login without re-saving
+    this.router.navigate(['/login']);
   }
 }

@@ -26,7 +26,7 @@
             <span class="material-icons">edit</span>
             Change Configuration
           </button>
-          <button class="btn btn-primary" (click)="saveConfiguration()">
+          <button class="btn btn-primary" (click)="continueToLogin()">
             <span class="material-icons">arrow_forward</span>
             Continue to Login
           </button>
@@ -48,7 +48,8 @@
               [class.is-invalid]="configForm.get('backendUrl')?.invalid && configForm.get('backendUrl')?.touched">
           </div>
 
-          <div class="form-error" *ngIf="configForm.get('backendUrl')?.invalid && configForm.get('backendUrl')?.touched">
+          <div class="form-error"
+               *ngIf="configForm.get('backendUrl')?.invalid && configForm.get('backendUrl')?.touched">
             {{ urlError }}
           </div>
 

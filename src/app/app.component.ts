@@ -5,6 +5,10 @@ import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { getLoadingService } from './core/interceptors/loading.interceptor';
 import { NotificationService } from './core/services/notification.service';
+import { AuthService } from './core/services/auth.service';
+import {ApiService} from './core/services/api.service';
+import {HttpClient} from '@angular/common/http';
+import {ConfigService} from './core/services/config.service';
 
 @Component({
   selector: 'app-root',
@@ -19,22 +23,36 @@ export class AppComponent implements OnInit {
   notifications: any[] = [];
 
   constructor(
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private authService: AuthService
+
   ) {}
 
   ngOnInit(): void {
-    // Subscribe to notifications
-    this.notificationService.notification$.subscribe(notification => {
-      this.notifications.push(notification);
-
-      // Auto-remove after duration
-      if (notification.duration && notification.duration > 0) {
-        setTimeout(() => {
-          this.removeNotification(notification.id);
-        }, notification.duration);
-      }
-    });
+  // Try to restore user session on app initialization
+  const token = localStorage.getItem('access_token');
+  if (token && !this.authService.currentUserValue) {
+    this.authService.checkAuthStatus().subscribe();
   }
+
+  // Subscribe to notifications
+  this.notificationService.notification$.subscribe(notification => {
+    this.notifications.push(notification);
+
+    // Auto-remove after duration
+    if (notification.duration && notification.duration > 0) {
+      setTimeout(() => {
+        this.removeNotification(notification.id);
+      }, notification.duration);
+    }
+  });
+}
+
+private checkAuthenticationStatus(): void {
+  // This will attempt to restore the user session if a token exists
+  const authService = new AuthService(new ApiService(new HttpClient(null as any), new ConfigService(new HttpClient(null as any))), new ConfigService(new HttpClient(null as any)), null as any);
+  // Note: This is just for illustration. You should properly inject AuthService
+}
 
   removeNotification(id: string): void {
     this.notifications = this.notifications.filter(n => n.id !== id);

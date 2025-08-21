@@ -2,7 +2,7 @@
 
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, timer, Subscription } from 'rxjs';
+import {BehaviorSubject, Observable, timer, Subscription, of} from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { ConfigService } from './config.service';
@@ -82,7 +82,9 @@ export class AuthService {
   isAuthenticated(): boolean {
     return !!this.config.getAccessToken() && !!this.currentUserValue;
   }
-
+  getToken(): string | null {
+    return this.config.getAccessToken();
+  }
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.api.post<AuthResponse>('/api/auth/login/', credentials, true).pipe(
       tap(response => {
@@ -172,25 +174,27 @@ export class AuthService {
 
   // Auto-login check on app initialization
   checkAuthStatus(): Observable<boolean> {
-    const token = this.config.getAccessToken();
+  const token = this.config.getAccessToken();
 
-    if (!token) {
-      return new Observable(observer => {
-        observer.next(false);
-        observer.complete();
-      });
-    }
-
-    return this.getProfile().pipe(
-      map(() => true),
-      catchError(() => {
-        this.clearAuthData();
-        return new Observable<boolean>(observer => { // Explicitly type the Observable
-          observer.next(false);
-          observer.complete();
-        });
-      })
-    );
-
+  if (!token) {
+    return of(false);
   }
+
+  // If we already have user data, no need to fetch again
+  if (this.currentUserValue) {
+    return of(true);
+  }
+
+  return this.getProfile().pipe(
+    map(() => true),
+    catchError((error) => {
+      console.error('Failed to load user profile:', error);
+      // Only clear auth data if we get a 401 (unauthorized)
+      if (error.status === 401) {
+        this.clearAuthData();
+      }
+      return of(false);
+    })
+  );
+}
 }

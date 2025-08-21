@@ -1,7 +1,7 @@
 // src/app/app.config.ts
 
 import { ApplicationConfig, importProvidersFrom } from '@angular/core';
-import { provideRouter, withHashLocation } from '@angular/router';
+import { provideRouter } from '@angular/router';  // <-- Removed withHashLocation import
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 
@@ -12,7 +12,7 @@ import { loadingInterceptor } from './core/interceptors/loading.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withHashLocation()),
+    provideRouter(routes),  // <-- Removed withHashLocation()
     provideHttpClient(
       withInterceptors([
         loadingInterceptor,
