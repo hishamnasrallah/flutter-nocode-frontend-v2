@@ -19,7 +19,12 @@ export const authInterceptor: HttpInterceptorFn = (
   const configService = inject(ConfigService);
   const router = inject(Router);
 
-  // Skip interceptor for certain requests
+  // Define endpoints that should NOT have an Authorization header
+  // These are typically authentication endpoints themselves
+  const AUTH_ENDPOINTS = ['/api/auth/login/', '/api/auth/register/', '/api/auth/refresh/', '/api/auth/logout/'];
+  const isAuthEndpoint = AUTH_ENDPOINTS.some(endpoint => req.url.includes(endpoint));
+
+  // Skip interceptor for certain requests (already existing logic)
   if (req.headers.has('Skip-Interceptor')) {
     const newReq = req.clone({
       headers: req.headers.delete('Skip-Interceptor')
@@ -27,11 +32,11 @@ export const authInterceptor: HttpInterceptorFn = (
     return next(newReq);
   }
 
-  // Add auth token if available
-  const token = configService.getAccessToken();
   let authReq = req;
+  const token = configService.getAccessToken();
 
-  if (token && !req.headers.has('Authorization')) {
+  // Only add auth token if available AND it's not an auth endpoint AND the request doesn't already have one
+  if (token && !isAuthEndpoint && !req.headers.has('Authorization')) {
     authReq = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`)
     });
@@ -39,7 +44,8 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !req.url.includes('/auth/')) {
+      // The refresh token logic should only apply to 401s on *protected* endpoints, not auth endpoints
+      if (error.status === 401 && !isAuthEndpoint) { // Changed condition here
         if (!isRefreshing) {
           isRefreshing = true;
           refreshTokenSubject.next(null);

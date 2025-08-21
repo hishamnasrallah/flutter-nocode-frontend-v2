@@ -29,7 +29,7 @@ export interface CreateApplicationRequest {
   description: string;
   package_name: string;
   version?: string;
-  theme?: number;
+  theme: number;
 }
 
 export interface UpdateApplicationRequest {

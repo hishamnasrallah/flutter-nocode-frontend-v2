@@ -6,6 +6,8 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ApplicationService } from '../../../core/services/application.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { Application } from '../../../core/models/application.model';
+import { ThemeService } from '../../../core/services/theme.service';
+import { Theme } from '../../../core/models/theme.model';
 
 @Component({
   selector: 'app-create-project-dialog',
@@ -20,7 +22,7 @@ export class CreateProjectDialogComponent implements OnInit {
 
   projectForm: FormGroup;
   isCreating = false;
-
+  availableThemes: Theme[] = [];
   templates = [
     { id: 'blank', name: 'Blank', icon: 'add_box', selected: true },
     { id: 'ecommerce', name: 'E-Commerce', icon: 'shopping_cart', selected: false },
@@ -31,25 +33,47 @@ export class CreateProjectDialogComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private applicationService: ApplicationService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private themeService: ThemeService
   ) {
     this.projectForm = this.fb.group({
-      name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
-      description: ['', [Validators.maxLength(200)]],
-      package_name: ['', [Validators.required, Validators.pattern(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/)]],
-      template: ['blank']
-    });
+  name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+  description: ['', [Validators.maxLength(200)]],
+  package_name: ['', [Validators.required, Validators.pattern(/^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$/)]],
+  template: ['blank'],
+  theme: [null, Validators.required] // Added theme field and made it required
+});
+
   }
 
   ngOnInit(): void {
-    // Auto-generate package name based on project name
-    this.projectForm.get('name')?.valueChanges.subscribe(name => {
-      if (name && !this.projectForm.get('package_name')?.dirty) {
-        const packageName = this.generatePackageName(name);
-        this.projectForm.patchValue({ package_name: packageName }, { emitEvent: false });
+  // Auto-generate package name based on project name
+  this.projectForm.get('name')?.valueChanges.subscribe(name => {
+    if (name && !this.projectForm.get('package_name')?.dirty) {
+      const packageName = this.generatePackageName(name);
+      this.projectForm.patchValue({ package_name: packageName }, { emitEvent: false });
+    }
+  });
+
+  // Fetch themes and set a default
+  this.themeService.getThemes().subscribe({
+    next: (response) => {
+      this.availableThemes = response.results;
+      if (this.availableThemes.length > 0) {
+        // Find a default theme, e.g., the first one, or one named "Material Blue"
+        const defaultTheme = this.availableThemes.find(t => t.name === 'Material Blue') || this.availableThemes[0];
+        this.projectForm.patchValue({ theme: defaultTheme.id }); // Set the theme ID in the form
+      } else {
+        this.notificationService.warning('No themes available. Please create one first.');
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('Failed to load themes:', err);
+      this.notificationService.error('Failed to load themes for project creation.');
+    }
+  });
+}
+
 
   selectTemplate(templateId: string): void {
     this.templates.forEach(t => t.selected = t.id === templateId);
@@ -84,8 +108,10 @@ export class CreateProjectDialogComponent implements OnInit {
         name: formValue.name,
         description: formValue.description || '',
         package_name: formValue.package_name,
-        version: '1.0.0'
+        version: '1.0.0',
+        theme: formValue.theme // Include the selected theme ID
       };
+
 
       const application = await this.applicationService.createApplication(createData).toPromise();
 
