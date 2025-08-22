@@ -110,53 +110,78 @@ export class AuthService {
   }
 
   logout(): void {
-    const refreshToken = this.config.getRefreshToken();
+  console.log('[AuthService] logout called');
+  const refreshToken = this.config.getRefreshToken();
+  console.log('[AuthService] Refresh token exists for logout:', !!refreshToken);
 
-    if (refreshToken) {
-      const request: LogoutRequest = { refresh: refreshToken };
-      this.api.post('/api/auth/logout/', request).subscribe({
-        complete: () => this.clearAuthData(),
-        error: () => this.clearAuthData()
-      });
-    } else {
-      this.clearAuthData();
-    }
+  if (refreshToken) {
+    const request: LogoutRequest = { refresh: refreshToken };
+    console.log('[AuthService] Sending logout request to backend');
+    this.api.post('/api/auth/logout/', request).subscribe({
+      complete: () => {
+        console.log('[AuthService] Logout request completed');
+        this.clearAuthData();
+      },
+      error: (error) => {
+        console.error('[AuthService] Logout request failed:', error);
+        this.clearAuthData();
+      }
+    });
+  } else {
+    console.log('[AuthService] No refresh token, clearing auth data directly');
+    this.clearAuthData();
   }
+}
 
   private clearAuthData(): void {
-    this.config.clearTokens();
-    localStorage.removeItem('current_user');
-    this.currentUserSubject.next(null);
-    this.stopTokenRefreshTimer();
-    this.router.navigate(['/login']);
-  }
+  console.log('[AuthService] clearAuthData called');
+  console.log('[AuthService] Current route:', this.router.url);
+
+  this.config.clearTokens();
+  localStorage.removeItem('current_user');
+  this.currentUserSubject.next(null);
+  this.stopTokenRefreshTimer();
+
+  console.log('[AuthService] Auth data cleared, navigating to /login');
+  this.router.navigate(['/login']);
+}
 
   refreshToken(): Observable<RefreshTokenResponse> {
-    const refreshToken = this.config.getRefreshToken();
+  console.log('[AuthService] refreshToken called');
+  const refreshToken = this.config.getRefreshToken();
+  console.log('[AuthService] Refresh token exists:', !!refreshToken);
 
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
-    }
-
-    const request: RefreshTokenRequest = { refresh: refreshToken };
-
-    return this.api.post<RefreshTokenResponse>('/api/auth/refresh/', request, true).pipe(
-      tap(response => {
-        this.config.setAccessToken(response.access);
-        this.config.setRefreshToken(response.refresh);
-      })
-    );
+  if (!refreshToken) {
+    console.error('[AuthService] No refresh token available');
+    throw new Error('No refresh token available');
   }
+
+  const request: RefreshTokenRequest = { refresh: refreshToken };
+  console.log('[AuthService] Attempting to refresh token');
+
+  return this.api.post<RefreshTokenResponse>('/api/auth/refresh/', request, true).pipe(
+    tap(response => {
+      console.log('[AuthService] Token refresh successful');
+      this.config.setAccessToken(response.access);
+      this.config.setRefreshToken(response.refresh);
+    })
+  );
+}
 
   getProfile(): Observable<User> {
-    return this.api.get<{ user: User }>('/api/auth/me/').pipe(
-      map(response => response.user),
-      tap(user => {
-        localStorage.setItem('current_user', JSON.stringify(user));
-        this.currentUserSubject.next(user);
-      })
-    );
-  }
+  console.log('[AuthService] getProfile called');
+  return this.api.get<{ user: User }>('/api/auth/me/').pipe(
+    map(response => {
+      console.log('[AuthService] Profile response received:', response);
+      return response.user;
+    }),
+    tap(user => {
+      console.log('[AuthService] Storing user in localStorage and subject');
+      localStorage.setItem('current_user', JSON.stringify(user));
+      this.currentUserSubject.next(user);
+    })
+  );
+}
 
   updateProfile(data: UpdateProfileRequest): Observable<User> {
     return this.api.put<{ user: User; message: string }>('/api/auth/update-profile/', data).pipe(
@@ -174,23 +199,33 @@ export class AuthService {
 
   // Auto-login check on app initialization
   checkAuthStatus(): Observable<boolean> {
+  console.log('[AuthService] checkAuthStatus called');
   const token = this.config.getAccessToken();
+  console.log('[AuthService] Access token exists:', !!token);
 
   if (!token) {
+    console.log('[AuthService] No token in checkAuthStatus, returning false');
     return of(false);
   }
 
   // If we already have user data, no need to fetch again
   if (this.currentUserValue) {
+    console.log('[AuthService] User already loaded in checkAuthStatus, returning true');
     return of(true);
   }
 
+  console.log('[AuthService] Fetching user profile to validate session');
   return this.getProfile().pipe(
-    map(() => true),
+    map(() => {
+      console.log('[AuthService] Profile fetched successfully');
+      return true;
+    }),
     catchError((error) => {
-      console.error('Failed to load user profile:', error);
+      console.error('[AuthService] Failed to load user profile:', error);
+      console.log('[AuthService] Error status:', error.status);
       // Only clear auth data if we get a 401 (unauthorized)
       if (error.status === 401) {
+        console.log('[AuthService] Got 401, clearing auth data');
         this.clearAuthData();
       }
       return of(false);

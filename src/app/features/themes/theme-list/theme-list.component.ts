@@ -182,7 +182,7 @@ export class ThemeListComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.applicationService.updateApplication(this.currentApplication.id, { theme: theme.id })
+    this.applicationService.updateApplication(this.currentApplication.id, { theme_id: theme.id })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {

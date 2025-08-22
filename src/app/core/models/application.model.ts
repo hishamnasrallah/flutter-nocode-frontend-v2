@@ -29,7 +29,7 @@ export interface CreateApplicationRequest {
   description: string;
   package_name: string;
   version?: string;
-  theme: number;
+  theme_id: number;  // Changed from 'theme' to 'theme_id' to match backend API
 }
 
 export interface UpdateApplicationRequest {
@@ -37,7 +37,7 @@ export interface UpdateApplicationRequest {
   description?: string;
   package_name?: string;
   version?: string;
-  theme?: number;
+  theme_id?: number;  // Changed from 'theme' to 'theme_id' to match backend API
 }
 
 export interface ApplicationListResponse {

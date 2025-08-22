@@ -18,7 +18,7 @@
   background: white;
   border-radius: 16px;
   width: 90%;
-  max-width: 600px;
+  max-width: 700px;
   max-height: 90vh;
   overflow: hidden;
   display: flex;
@@ -173,6 +173,204 @@
       margin-top: 4px;
     }
   }
+
+  // Theme-specific styles
+  .theme-toggle {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+
+      input[type="radio"] {
+        margin-right: 8px;
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+      }
+
+      span {
+        font-size: 14px;
+        color: #333;
+      }
+
+      &:hover span {
+        color: #667eea;
+      }
+    }
+  }
+
+  .theme-selection {
+    animation: slideIn 0.3s;
+
+    .theme-preview {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+
+      .preview-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .color-preview {
+        display: flex;
+        gap: 8px;
+
+        .color-chip {
+          flex: 1;
+          height: 40px;
+          border-radius: 6px;
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+
+          span {
+            font-size: 10px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+          }
+        }
+      }
+    }
+  }
+
+  .theme-creation {
+    animation: slideIn 0.3s;
+
+    .color-inputs {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+
+      @media (max-width: 600px) {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .color-group {
+      .color-input-wrapper {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+
+        .color-picker {
+          width: 40px;
+          height: 40px;
+          border: 2px solid #e0e0e0;
+          border-radius: 6px;
+          cursor: pointer;
+          padding: 2px;
+
+          &::-webkit-color-swatch-wrapper {
+            padding: 0;
+          }
+
+          &::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+          }
+        }
+
+        .color-text {
+          flex: 1;
+          font-family: 'Monaco', 'Courier New', monospace;
+          text-transform: uppercase;
+        }
+      }
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+
+      .checkbox {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      span {
+        font-size: 14px;
+        color: #333;
+      }
+
+      &:hover span {
+        color: #667eea;
+      }
+    }
+
+    .theme-live-preview {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
+
+      .preview-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .preview-container {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.3s;
+
+        .preview-header {
+          padding: 12px;
+          color: white;
+          font-weight: 500;
+          text-align: center;
+          transition: background 0.3s;
+        }
+
+        .preview-content {
+          padding: 16px;
+          min-height: 100px;
+          transition: all 0.3s;
+
+          p {
+            margin: 0 0 16px 0;
+            font-size: 14px;
+          }
+
+          .preview-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 .dialog-footer {
@@ -254,6 +452,17 @@
   }
 }
 
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -273,5 +482,10 @@
 
   .templates-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .theme-toggle {
+    flex-direction: column;
+    gap: 12px;
   }
 }

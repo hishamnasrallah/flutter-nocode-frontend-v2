@@ -53,7 +53,7 @@
             [class.is-invalid]="isFieldInvalid('description')">
           </textarea>
           <div class="field-hint">
-            {{ projectForm.get('description')?.value?.length || 0 }}/200 characters
+            {{ getDescriptionLength() }}/200 characters
           </div>
           <div class="field-error" *ngIf="isFieldInvalid('description')">
             {{ getFieldError('description') }}
@@ -77,6 +77,224 @@
             {{ getFieldError('package_name') }}
           </div>
         </div>
+
+        <!-- Theme Configuration Section -->
+        <div class="form-section">
+          <label class="section-label">Theme Configuration *</label>
+
+          <!-- Theme Option Toggle -->
+          <div class="theme-toggle">
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="themeOption"
+                value="existing"
+                formControlName="themeOption"
+                (change)="onThemeOptionChange()">
+              <span>Use Existing Theme</span>
+            </label>
+            <label class="radio-option">
+              <input
+                type="radio"
+                name="themeOption"
+                value="new"
+                formControlName="themeOption"
+                (change)="onThemeOptionChange()">
+              <span>Create New Theme</span>
+            </label>
+          </div>
+
+          <!-- Existing Theme Selection -->
+          <div class="theme-selection" *ngIf="projectForm.get('themeOption')?.value === 'existing'">
+            <div class="form-group">
+              <label for="selectedTheme">Select Theme *</label>
+              <select
+                id="selectedTheme"
+                formControlName="selectedThemeId"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('selectedThemeId')">
+                <option value="" disabled>Choose a theme...</option>
+                <option *ngFor="let theme of availableThemes" [value]="theme.id">
+                  {{ theme.name }} {{ theme.is_dark_mode ? '(Dark)' : '(Light)' }}
+                </option>
+              </select>
+              <div class="field-error" *ngIf="isFieldInvalid('selectedThemeId')">
+                {{ getFieldError('selectedThemeId') }}
+              </div>
+
+              <!-- Theme Preview -->
+              <div class="theme-preview" *ngIf="getSelectedTheme()">
+                <div class="preview-label">Preview:</div>
+                <div class="color-preview">
+                  <div class="color-chip" [style.background]="getSelectedTheme()?.primary_color" title="Primary">
+                    <span>Primary</span>
+                  </div>
+                  <div class="color-chip" [style.background]="getSelectedTheme()?.accent_color" title="Accent">
+                    <span>Accent</span>
+                  </div>
+                  <div class="color-chip" [style.background]="getSelectedTheme()?.background_color" title="Background">
+                    <span>Background</span>
+                  </div>
+                  <div class="color-chip" [style.background]="getSelectedTheme()?.text_color" title="Text">
+                    <span>Text</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- New Theme Creation -->
+          <div class="theme-creation" *ngIf="projectForm.get('themeOption')?.value === 'new'">
+            <div class="form-group">
+              <label for="newThemeName">Theme Name *</label>
+              <input
+                type="text"
+                id="newThemeName"
+                formControlName="newThemeName"
+                placeholder="My Custom Theme"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('newThemeName')">
+              <div class="field-error" *ngIf="isFieldInvalid('newThemeName')">
+                {{ getFieldError('newThemeName') }}
+              </div>
+            </div>
+
+            <div class="color-inputs">
+              <div class="form-group color-group">
+                <label for="primaryColor">Primary Color *</label>
+                <div class="color-input-wrapper">
+                  <input
+                    type="color"
+                    id="primaryColorPicker"
+                    formControlName="newPrimaryColor"
+                    class="color-picker">
+                  <input
+                    type="text"
+                    id="primaryColor"
+                    formControlName="newPrimaryColor"
+                    placeholder="#2196F3"
+                    class="form-control color-text"
+                    [class.is-invalid]="isFieldInvalid('newPrimaryColor')">
+                </div>
+                <div class="field-error" *ngIf="isFieldInvalid('newPrimaryColor')">
+                  {{ getFieldError('newPrimaryColor') }}
+                </div>
+              </div>
+
+              <div class="form-group color-group">
+                <label for="accentColor">Accent Color *</label>
+                <div class="color-input-wrapper">
+                  <input
+                    type="color"
+                    id="accentColorPicker"
+                    formControlName="newAccentColor"
+                    class="color-picker">
+                  <input
+                    type="text"
+                    id="accentColor"
+                    formControlName="newAccentColor"
+                    placeholder="#FF4081"
+                    class="form-control color-text"
+                    [class.is-invalid]="isFieldInvalid('newAccentColor')">
+                </div>
+                <div class="field-error" *ngIf="isFieldInvalid('newAccentColor')">
+                  {{ getFieldError('newAccentColor') }}
+                </div>
+              </div>
+
+              <div class="form-group color-group">
+                <label for="backgroundColor">Background Color *</label>
+                <div class="color-input-wrapper">
+                  <input
+                    type="color"
+                    id="backgroundColorPicker"
+                    formControlName="newBackgroundColor"
+                    class="color-picker">
+                  <input
+                    type="text"
+                    id="backgroundColor"
+                    formControlName="newBackgroundColor"
+                    placeholder="#FFFFFF"
+                    class="form-control color-text"
+                    [class.is-invalid]="isFieldInvalid('newBackgroundColor')">
+                </div>
+                <div class="field-error" *ngIf="isFieldInvalid('newBackgroundColor')">
+                  {{ getFieldError('newBackgroundColor') }}
+                </div>
+              </div>
+
+              <div class="form-group color-group">
+                <label for="textColor">Text Color *</label>
+                <div class="color-input-wrapper">
+                  <input
+                    type="color"
+                    id="textColorPicker"
+                    formControlName="newTextColor"
+                    class="color-picker">
+                  <input
+                    type="text"
+                    id="textColor"
+                    formControlName="newTextColor"
+                    placeholder="#212121"
+                    class="form-control color-text"
+                    [class.is-invalid]="isFieldInvalid('newTextColor')">
+                </div>
+                <div class="field-error" *ngIf="isFieldInvalid('newTextColor')">
+                  {{ getFieldError('newTextColor') }}
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="fontFamily">Font Family *</label>
+              <select
+                id="fontFamily"
+                formControlName="newFontFamily"
+                class="form-control"
+                [class.is-invalid]="isFieldInvalid('newFontFamily')">
+                <option value="Roboto">Roboto</option>
+                <option value="SF Pro Display">SF Pro Display</option>
+                <option value="Inter">Inter</option>
+                <option value="Open Sans">Open Sans</option>
+                <option value="Lato">Lato</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="Poppins">Poppins</option>
+              </select>
+              <div class="field-error" *ngIf="isFieldInvalid('newFontFamily')">
+                {{ getFieldError('newFontFamily') }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  formControlName="newIsDarkMode"
+                  class="checkbox">
+                <span>Dark Mode Theme</span>
+              </label>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="theme-live-preview">
+              <div class="preview-label">Live Preview:</div>
+              <div class="preview-container"
+                   [style.background]="projectForm.get('newBackgroundColor')?.value"
+                   [style.color]="projectForm.get('newTextColor')?.value"
+                   [style.font-family]="projectForm.get('newFontFamily')?.value">
+                <div class="preview-header" [style.background]="projectForm.get('newPrimaryColor')?.value">
+                  <span>App Header</span>
+                </div>
+                <div class="preview-content">
+                  <p>This is how your app will look with the selected theme colors.</p>
+                  <button class="preview-button" [style.background]="projectForm.get('newAccentColor')?.value">
+                    Action Button
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
     </div>
 
@@ -91,7 +309,7 @@
       <button
         class="btn btn-primary"
         (click)="onCreate()"
-        [disabled]="isCreating || projectForm.invalid">
+        [disabled]="isCreating || !isFormValid()">
         <span class="spinner" *ngIf="isCreating"></span>
         <span *ngIf="!isCreating">
           <span class="material-icons">add</span>

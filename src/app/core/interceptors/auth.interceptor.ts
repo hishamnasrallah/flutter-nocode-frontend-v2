@@ -19,13 +19,16 @@ export const authInterceptor: HttpInterceptorFn = (
   const configService = inject(ConfigService);
   const router = inject(Router);
 
+  console.log('[AuthInterceptor] Intercepting request:', req.method, req.url);
+
   // Define endpoints that should NOT have an Authorization header
-  // These are typically authentication endpoints themselves
   const AUTH_ENDPOINTS = ['/api/auth/login/', '/api/auth/register/', '/api/auth/refresh/', '/api/auth/logout/'];
   const isAuthEndpoint = AUTH_ENDPOINTS.some(endpoint => req.url.includes(endpoint));
+  console.log('[AuthInterceptor] Is auth endpoint:', isAuthEndpoint);
 
-  // Skip interceptor for certain requests (already existing logic)
+  // Skip interceptor for certain requests
   if (req.headers.has('Skip-Interceptor')) {
+    console.log('[AuthInterceptor] Skipping interceptor (Skip-Interceptor header present)');
     const newReq = req.clone({
       headers: req.headers.delete('Skip-Interceptor')
     });
@@ -34,9 +37,11 @@ export const authInterceptor: HttpInterceptorFn = (
 
   let authReq = req;
   const token = configService.getAccessToken();
+  console.log('[AuthInterceptor] Token exists:', !!token);
 
   // Only add auth token if available AND it's not an auth endpoint AND the request doesn't already have one
   if (token && !isAuthEndpoint && !req.headers.has('Authorization')) {
+    console.log('[AuthInterceptor] Adding Authorization header');
     authReq = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`)
     });
@@ -44,14 +49,21 @@ export const authInterceptor: HttpInterceptorFn = (
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
+      console.log('[AuthInterceptor] Request failed with status:', error.status);
+      console.log('[AuthInterceptor] Failed URL:', req.url);
+
       // The refresh token logic should only apply to 401s on *protected* endpoints, not auth endpoints
-      if (error.status === 401 && !isAuthEndpoint) { // Changed condition here
+      if (error.status === 401 && !isAuthEndpoint) {
+        console.log('[AuthInterceptor] Got 401 on protected endpoint, attempting token refresh');
+
         if (!isRefreshing) {
+          console.log('[AuthInterceptor] Starting token refresh');
           isRefreshing = true;
           refreshTokenSubject.next(null);
 
           return authService.refreshToken().pipe(
             switchMap((response) => {
+              console.log('[AuthInterceptor] Token refresh successful, retrying original request');
               isRefreshing = false;
               refreshTokenSubject.next(response.access);
 
@@ -62,17 +74,21 @@ export const authInterceptor: HttpInterceptorFn = (
               return next(newAuthReq);
             }),
             catchError((refreshError) => {
+              console.error('[AuthInterceptor] Token refresh failed:', refreshError);
+              console.log('[AuthInterceptor] Calling logout due to refresh failure');
               isRefreshing = false;
               authService.logout();
               return throwError(() => refreshError);
             })
           );
         } else {
+          console.log('[AuthInterceptor] Token refresh already in progress, waiting...');
           // Wait for refresh to complete
           return refreshTokenSubject.pipe(
             filter(token => token != null),
             take(1),
             switchMap(token => {
+              console.log('[AuthInterceptor] Got new token from ongoing refresh, retrying request');
               const newAuthReq = req.clone({
                 headers: req.headers.set('Authorization', `Bearer ${token}`)
               });
